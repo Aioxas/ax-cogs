@@ -45,7 +45,6 @@ class Quotes:
 				async with aiohttp.get('http://www.brainyquote.com/quotes/authors/m/morgan_freeman.html') as resp:
 					test = await resp.content.read()
 					quote_find = self.morganregex.findall("{}".format(test))
-					#Morgan_Freeman_remove = quote_find.remove('Morgan Freeman')
 					random_quote = choice(quote_find)
 					while random_quote == 'Morgan Freeman':
 						random_quote = choice(quote_find)
