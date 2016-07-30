@@ -51,17 +51,6 @@ class Quotes:
 						random_quote = choice(quote_find)
 					single_quote_replace = self.morgan_single_quote_regex.sub("'", random_quote)		
 					await self.bot.say(box(single_quote_replace))
-					
-	@commands.command(name="igg",pass_context=True, no_pm=True)
-	async def _igg(self, ctx, *, game : str):
-		"""Retrieves a game from igg-games.com based on the query"""
-		try:
-			async with aiohttp.get('http://igg-games.com/?s={}'.format(game)) as resp:
-				test = await resp.content.read()
-				game_find = re.findall("<a class=\"post-thumb \" id=\"thumb-([^`]*?)\" href=\"([^`]*?)\" title=\"","{}".format(test))
-				await self.bot.say("Here is your link: {}".format(game_find[0][1]))
-		except IndexError:
-			await self.bot.say("Your search yielded no results.")
 							
 	def bash_unescape(self, query):
 		bash_unescape = html.unescape(query)
