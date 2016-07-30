@@ -72,14 +72,4 @@ class Quotes:
 		
 def setup(bot):
 	n = Quotes(bot)
-<<<<<<< HEAD:Quotes/quotes.py
 	bot.add_cog(n)
-=======
-	logger = logging.getLogger("red.bash")
-	if logger.level == 0: # Prevents the logger from being loaded again in case of module reload
-		logger.setLevel(logging.INFO)
-		handler = logging.FileHandler(filename='data/bash/bash.log', encoding='utf-8', mode='a')
-		handler.setFormatter(logging.Formatter('%(asctime)s %(message)s', datefmt="[%d/%m/%Y %H:%M]"))
-		logger.addHandler(handler)
-	bot.add_cog(n)
->>>>>>> origin/master:quotes/quotes.py
