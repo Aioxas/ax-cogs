@@ -53,7 +53,7 @@ class AdvancedGoogle:
 						await self.bot.say("Your search yielded no results.")
 			#End of Image
 		#Start of Image random
-		if search_type[0] == "images":
+		elif search_type[0] == "images":
 			search_valid = str(ctx.message.content[len(ctx.prefix+ctx.command.name)+1:].lower())
 			if search_valid == "image":
 				await self.bot.say("Please actually search something")
