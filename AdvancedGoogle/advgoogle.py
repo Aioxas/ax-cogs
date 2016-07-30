@@ -4,8 +4,6 @@ from discord.ext import commands
 from .utils import checks
 from __main__ import send_cmd_help
 from random import choice
-import os
-import logging
 import re
 from cogs.utils.chat_formatting import *
 import urllib

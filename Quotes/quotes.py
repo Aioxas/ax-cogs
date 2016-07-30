@@ -2,21 +2,16 @@ import discord
 import aiohttp
 from discord.ext import commands
 from .utils import checks
-from .utils.dataIO import dataIO
 from __main__ import send_cmd_help
 from random import choice
-import os
-import logging
 import re
 from cogs.utils.chat_formatting import *
-import urllib
 import html
 
 class Quotes:
 
 	def __init__(self, bot):
 		self.bot = bot
-		self.bash = dataIO.load_json("data/bash/bash.json")
 		self.bashregex = re.compile("<p class=\"qt\">([^`]*?)<\/p>")
 		self.break_regex = re.compile("<br \/>")
 		self.CR_LF_removal_regex = re.compile("(?:\\\\[rn])")
@@ -75,19 +70,6 @@ class Quotes:
 		single_quote_sub = self.single_quote_regex.sub("'", CR_LF_sub)
 		return single_quote_sub
 		
-def check_folders():
-	if not os.path.exists("data/bash"):
-		print("Creating data/bash folder...")
-		os.mkdir("data/bash")
-		
 def setup(bot):
-	global logger
-	check_folders()
 	n = Quotes(bot)
-	logger = logging.getLogger("red.bash")
-	if logger.level == 0: # Prevents the logger from being loaded again in case of module reload
-		logger.setLevel(logging.INFO)
-		handler = logging.FileHandler(filename='data/bash/bash.log', encoding='utf-8', mode='a')
-		handler.setFormatter(logging.Formatter('%(asctime)s %(message)s', datefmt="[%d/%m/%Y %H:%M]"))
-		logger.addHandler(handler)
 	bot.add_cog(n)
