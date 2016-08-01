@@ -83,7 +83,7 @@ class AdvancedGoogle:
                 quary = str(ctx.message.content[len(ctx.prefix+ctx.command.name)+6:].lower())
                 encode = urllib.parse.quote_plus(quary,encoding='utf-8',errors='replace')
                 uir = uri+encode
-                await self.bot.say(uir, header = self.option)
+                await self.bot.say(uir, headers = self.option)
             #End of Maps
         #Start of generic search
         else:
