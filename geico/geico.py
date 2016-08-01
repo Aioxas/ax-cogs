@@ -8,8 +8,8 @@ import re
 from cogs.utils.chat_formatting import *
 import html
 
-class Quotes:
-
+class Geico:
+    """A 15-minute call could save you 15 percent (or more) on car insurance."""
     def __init__(self, bot):
         self.bot = bot
         self.bashregex = re.compile("<p class=\"qt\">([^`]*?)<\/p>")
@@ -59,5 +59,5 @@ class Quotes:
         return single_quote_sub
         
 def setup(bot):
-    n = Quotes(bot)
+    n = Geico(bot)
     bot.add_cog(n)
