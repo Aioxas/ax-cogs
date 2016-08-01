@@ -5,7 +5,6 @@ from .utils import checks
 from __main__ import send_cmd_help
 from random import choice
 import re
-from cogs.utils.chat_formatting import *
 import urllib
 
 class AdvancedGoogle:
@@ -83,7 +82,7 @@ class AdvancedGoogle:
                 quary = str(ctx.message.content[len(ctx.prefix+ctx.command.name)+6:].lower())
                 encode = urllib.parse.quote_plus(quary,encoding='utf-8',errors='replace')
                 uir = uri+encode
-                await self.bot.say(uir, header = self.option)
+                await self.bot.say(uir)
             #End of Maps
         #Start of generic search
         else:
