@@ -36,7 +36,7 @@ class Geico:
 
     @commands.command(name="morgan",pass_context=True, no_pm=True)
     async def _morgan(self, ctx, num : int=1):
-        """Retrieves a quote from bash.org. num can be specified for number of quotes. Max is 5."""
+        """Retrieves a quote of Morgan Freeman. num can be specified for number of quotes. Max is 5."""
         if num > 5:
             num = 5
             await self.bot.reply("Heck naw brah. 5 is max. Any more and you get killed.")
