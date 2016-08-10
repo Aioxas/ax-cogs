@@ -13,7 +13,6 @@ class Strawpoll:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json("data/strawpoll/strawpoll.json")
-        self.option = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
         self.fp = "data/strawpoll/strawpoll.json"
 
     @commands.command(name="strawpoll",pass_context=True, no_pm=True)
