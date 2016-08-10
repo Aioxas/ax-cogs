@@ -11,10 +11,6 @@ class AdvancedGoogle:
 
     def __init__(self, bot):
         self.bot = bot
-        self.option = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
-        self.break_regex = re.compile("<br \/>")
-        self.CR_LF_removal_regex = re.compile("(?:\\\\[rn])")
-        self.single_quote_regex = re.compile("(?:\\\\['])")
         
     @commands.command(name = "advgoogle", pass_context=True, no_pm=True)
     async def _advgoogle(self, ctx, text):
@@ -29,6 +25,7 @@ class AdvancedGoogle:
         
         Originally made by Kowlin https://github.com/Kowlin/refactored-cogs edited by Axioxas"""
         search_type = ctx.message.content[len(ctx.prefix+ctx.command.name)+1:].lower().split(" ")
+        option = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
         
         #Start of Image
         if search_type[0] == "image":
@@ -40,7 +37,8 @@ class AdvancedGoogle:
                 quary = str(ctx.message.content[len(ctx.prefix+ctx.command.name)+7:].lower())
                 encode = urllib.parse.quote_plus(quary,encoding='utf-8',errors='replace')
                 uir = uri+encode
-                async with aiohttp.get(uir, headers = self.option) as resp:
+                
+                async with aiohttp.get(uir, headers = option) as resp:
                     test = await resp.content.read()
                     imageregex = re.compile(",\"ou\":\"([^`]*?)\"")
                     unicoded = test.decode("unicode_escape")
@@ -61,7 +59,7 @@ class AdvancedGoogle:
                 quary = str(ctx.message.content[len(ctx.prefix+ctx.command.name)+7:].lower())
                 encode = urllib.parse.quote_plus(quary,encoding='utf-8',errors='replace')
                 uir = uri+encode
-                async with aiohttp.get(uir, headers = self.option) as resp:
+                async with aiohttp.get(uir, headers = option) as resp:
                     test = await resp.content.read()
                     imageregex = re.compile(",\"ou\":\"([^`]*?)\"")
                     unicoded = test.decode("unicode_escape")
@@ -90,7 +88,7 @@ class AdvancedGoogle:
             quary = str(ctx.message.content[len(ctx.prefix+ctx.command.name)+1:])
             encode = urllib.parse.quote_plus(quary,encoding='utf-8',errors='replace')
             uir = uri+encode
-            async with aiohttp.get(uir, headers = self.option) as resp:
+            async with aiohttp.get(uir, headers = option) as resp:
                 test = await resp.content.read()
                 searchregex = re.compile("<h3 class=\"r\"><a href=\"\/url\?url=([^`]*?)&amp;")
                 searchregex2 = re.compile("<h3 class=\"r\"><a href=\"([^`]*?)\"")
@@ -123,9 +121,9 @@ class AdvancedGoogle:
             #End of generic search
                     
     def unescape(self, query):
-        break_sub = self.break_regex.sub("\n", query)
-        CR_LF_sub = self.CR_LF_removal_regex.sub("", break_sub)
-        single_quote_sub = self.single_quote_regex.sub("'", CR_LF_sub)
+        break_sub = re.sub("<br \/>", "\n", query)
+        CR_LF_sub = re.sub("(?:\\\\[rn])", "", break_sub)#CR_LF_sub is Carriage Return, Line Feed sub.
+        single_quote_sub = re.sub("(?:\\\\['])", "'", CR_LF_sub)
         percent_sub = re.sub("%25", "%", single_quote_sub)
         left_parentheses_sub = re.sub("\(", "%28", percent_sub)
         right_parentheses_sub = re.sub("\)", "%29", left_parentheses_sub)
