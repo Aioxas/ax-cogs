@@ -1,12 +1,12 @@
 import discord
-import aiohttp
 from discord.ext import commands
 from .utils import checks
 from __main__ import send_cmd_help
 from random import choice
-import re
 from cogs.utils.chat_formatting import *
+import aiohttp
 import html
+import re
 import urllib
 
 class Geico:
@@ -15,30 +15,29 @@ class Geico:
         self.bot = bot
         
     @commands.command(name="bash", pass_context=True, no_pm=True)
+    @commands.cooldown(3, 60, commands.BucketType.user)
     async def _bash(self, ctx, num : int=1):
         """Retrieves a quote from bash.org. num can be specified for number of quotes. Max is 5."""
+        regex = ["<p class=\"qt\">([^`]*?)<\/p>", "<br \/>"]
         if num > 5:
             num = 5
             await self.bot.reply("Heck naw brah. 5 is max. Any more and you get killed.")
-        else:
-            for i in range(num):
-                async with aiohttp.get('http://bash.org/?random') as resp:
-                    test = await resp.content.read()
-                    bashregex = re.compile("<p class=\"qt\">([^`]*?)<\/p>")
-                    quote_find = bashregex.findall("{}".format(test))
-                    blank_space_replace = self.bash_unescape(quote_find[0])
-                    await self.bot.say(box(blank_space_replace))
+        for i in range(num):
+            async with aiohttp.get('http://bash.org/?random') as resp:
+                test = str(await resp.text())
+                subs = re.findall(regex[0], test)
+                brsub = re.sub(regex[1], "", subs[0])
+                subs2 = html.unescape(brsub)
+                await self.bot.say(box(subs2))
 
     @commands.command(name="quotes",pass_context=True, no_pm=True)
+    @commands.cooldown(3, 60, commands.BucketType.user)
     async def _quotes(self, ctx, *, author : str):
         """Retrieves a specified number of quotes from a specified author. Max number of quotes at a time is 5.
         Examples:
         [p]quotes Morgan Freeman; 5
         [p]quotes Margaret Thatcher; 2"""
-        quoteregex = re.compile("title=\"view quote\">([^`]*?)<\/a>")
-        quote_single_quote_regex = re.compile("&#39;")
-        authorregex = re.compile(" <a href=\"\/quotes\/authors\/([^`]*?).html\">")
-        nameregex = re.compile("<h1 class=\"pull-left quoteListH1\" style=\"padding-right:20px\">([^`]*?) Quotes")
+        regex = [" <a href=\"\/quotes\/authors\/([^`]*?).html\">", "title=\"view quote\">([^`]*?)<\/a>", "<h1 class=\"pull-left quoteListH1\" style=\"padding-right:20px\">([^`]*?) Quotes", "&#39;"]
         option = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
         try:
             author = author.split('; ')
@@ -47,60 +46,27 @@ class Geico:
             if number > 5:
                 number = 5
                 await self.bot.reply("Heck naw brah. 5 is max. Any more and you get killed.")
-                uri = 'http://www.brainyquote.com/search_results.html?q='
-                quary = str(title).lower()
-                encode = urllib.parse.quote_plus(quary,encoding='utf-8',errors='replace')
-                uir = uri + encode
-                async with aiohttp.get(uir, headers = option) as resp:
-                    test = await resp.content.read()
-                    author_find = authorregex.findall("{}".format(test))
-                    author_url = 'http://www.brainyquote.com/quotes/authors/' + str(author_find[0])
-                    for i in range(number):
-                        async with aiohttp.get(author_url) as resp:
-                            test = await resp.content.read()
-                            quote_find = quoteregex.findall("{}".format(test))
+            uri = 'http://www.brainyquote.com/search_results.html?q='
+            quary = title.lower()
+            encode = urllib.parse.quote_plus(quary,encoding='utf-8',errors='replace')
+            uir = uri + encode
+            async with aiohttp.get(uir, headers = option) as resp:
+                test = str(await resp.text())
+                author_find = re.findall(regex[0], test)
+                author_url = 'http://www.brainyquote.com/quotes/authors/' + author_find[0]
+                for i in range(number):
+                    async with aiohttp.get(author_url) as resp:
+                        test = str(await resp.text())
+                        quote_find = re.findall(regex[1], test)
+                        random_quote = choice(quote_find)
+                        name_find = re.findall(regex[2], test)
+                        while random_quote == name_find[0]:
                             random_quote = choice(quote_find)
-                            name_find = nameregex.findall("{}".format(test))
-                            name = str(name_find[0])
-                            while random_quote == name:
-                                random_quote = choice(quote_find)
-                            single_quote_replace = quote_single_quote_regex.sub("'", random_quote)
-                            await self.bot.say(box(single_quote_replace))
-            else:
-                uri = 'http://www.brainyquote.com/search_results.html?q='
-                quary = str(title).lower()
-                encode = urllib.parse.quote_plus(quary,encoding='utf-8',errors='replace')
-                uir = uri + encode
-                async with aiohttp.get(uir, headers = option) as resp:
-                    test = await resp.content.read()
-                    author_find = authorregex.findall("{}".format(test))
-                    author_url = 'http://www.brainyquote.com/quotes/authors/' + str(author_find[0])
-                    for i in range(number):
-                        async with aiohttp.get(author_url) as resp:
-                            test = await resp.content.read()
-                            quote_find = quoteregex.findall("{}".format(test))
-                            random_quote = choice(quote_find)
-                            name_find = nameregex.findall("{}".format(test))
-                            name = str(name_find[0])
-                            while random_quote == name:
-                                random_quote = choice(quote_find)
-                            single_quote_replace = quote_single_quote_regex.sub("'", random_quote)
-                            await self.bot.say(box(single_quote_replace))
+                        await self.bot.say(box(random_quote))
 
         except IndexError:
             await self.bot.say("Your search is not valid, please follow the examples.\n[p]quotes Margaret Thatcher; 5\n[p]quotes Morgan Freeman; 5")
-                            
-def bash_unescape(self, query):
-        break_regex = re.compile("<br \/>")
-        CR_LF_removal_regex = re.compile("(?:\\\\[rn])")
-        single_quote_regex = re.compile("(?:\\\\['])")
-        
-        bash_unescape = html.unescape(query)
-        break_sub = break_regex.sub("\n", bash_unescape)
-        CR_LF_sub = CR_LF_removal_regex.sub("", break_sub)
-        single_quote_sub = single_quote_regex.sub("'", CR_LF_sub)
-        return single_quote_sub
-        
+
 def setup(bot):
     n = Geico(bot)
     bot.add_cog(n)

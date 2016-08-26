@@ -34,7 +34,7 @@ class Strawpoll:
                 test = json.loads(test.decode())
                 id = test["id"]
                 await self.bot.say("Here's your strawpoll link: http://strawpoll.me/{}".format(id))
-    
+
     @commands.group(name="strawpollset", pass_context=True, no_pm=True)
     async def strawpollset(self,ctx):
         """Toggle the different options available for polls
@@ -44,7 +44,7 @@ class Strawpoll:
         if ctx.invoked_subcommand is None:
             await send_cmd_help(ctx)
             await self.bot.say("```current settings for the polls are as follows:\nmulti: {}\ndupcheck: {}\ncaptcha: {}```".format(self.settings["multi"],self.settings["dupcheck"], self.settings["captcha"]))
-    
+
     @strawpollset.command(name="multi", pass_context=True, no_pm=True)
     async def multi(self,ctx):
         """Toggles between True and False values
@@ -52,12 +52,11 @@ class Strawpoll:
             False - Multiple choice is not available"""
         if self.settings["multi"] == "true":
             self.settings["multi"] = "false"
-            dataIO.save_json(self.fp, self.settings)
             await self.bot.say("Multiple choice no longer available in the poll")
         else:
             self.settings["multi"] = "true"
-            dataIO.save_json(self.fp, self.settings)
             await self.bot.say("Multiple choice is now available on the polls.")
+        dataIO.save_json(self.fp, self.settings)
 
     @strawpollset.command(name="dupcheck", pass_context=True, no_pm=True)
     async def dupcheck(self,ctx, option):
@@ -80,8 +79,7 @@ class Strawpoll:
             else:
                 await self.bot.say("Dupcheck is now disabled.")
             dataIO.save_json(self.fp, self.settings)
-            
-            
+
     @strawpollset.command(name="captcha", pass_context=True, no_pm=True)
     async def captcha(self,ctx):
         """Toggles between True and False values
@@ -89,19 +87,16 @@ class Strawpoll:
             False - Voters will not have to a captcha"""
         if self.settings["captcha"] == "true":
             self.settings["captcha"] = "false"
-            dataIO.save_json(self.fp, self.settings)
             await self.bot.say("Voters will no longer have to do a captcha to vote.")
         else:
             self.settings["captcha"] = "true"
-            dataIO.save_json(self.fp, self.settings)
             await self.bot.say("Voters will have to do a captcha to vote.")
-            
+        dataIO.save_json(self.fp, self.settings)
 
 def check_folders():
     if not os.path.exists("data/strawpoll"):
         print("Creating data/strawpoll folder...")
         os.mkdir("data/strawpoll")
-
 
 def check_files():
     fp = "data/strawpoll/strawpoll.json"

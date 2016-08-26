@@ -1,9 +1,9 @@
 import discord
-import aiohttp
 from discord.ext import commands
 from .utils import checks
 from __main__ import send_cmd_help
 from random import choice
+import aiohttp
 import re
 import urllib
 
@@ -13,6 +13,7 @@ class AdvancedGoogle:
         self.bot = bot
         
     @commands.command(name = "advgoogle", pass_context=True, no_pm=True)
+    @commands.cooldown(5, 60, commands.BucketType.user)
     async def _advgoogle(self, ctx, text):
         """Its google, you search with it.
         Example: google A french pug
@@ -26,6 +27,7 @@ class AdvancedGoogle:
         Originally made by Kowlin https://github.com/Kowlin/refactored-cogs edited by Axioxas"""
         search_type = ctx.message.content[len(ctx.prefix+ctx.command.name)+1:].lower().split(" ")
         option = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
+        regex = [",\"ou\":\"([^`]*?)\"", "<h3 class=\"r\"><a href=\"\/url\?url=([^`]*?)&amp;", "<h3 class=\"r\"><a href=\"([^`]*?)\""]
         
         #Start of Image
         if search_type[0] == "image":
@@ -40,9 +42,8 @@ class AdvancedGoogle:
                 
                 async with aiohttp.get(uir, headers = option) as resp:
                     test = await resp.content.read()
-                    imageregex = re.compile(",\"ou\":\"([^`]*?)\"")
                     unicoded = test.decode("unicode_escape")
-                    query_find = imageregex.findall(unicoded)
+                    query_find = re.findall(regex[0], unicoded)
                     try:
                         url = query_find[0]
                         await self.bot.say(url)
@@ -61,9 +62,8 @@ class AdvancedGoogle:
                 uir = uri+encode
                 async with aiohttp.get(uir, headers = option) as resp:
                     test = await resp.content.read()
-                    imageregex = re.compile(",\"ou\":\"([^`]*?)\"")
                     unicoded = test.decode("unicode_escape")
-                    query_find = imageregex.findall(unicoded)
+                    query_find = re.findall(regex[0], unicoded)
                     try:
                         url = choice(query_find)
                         await self.bot.say(url)
@@ -89,13 +89,10 @@ class AdvancedGoogle:
             encode = urllib.parse.quote_plus(quary,encoding='utf-8',errors='replace')
             uir = uri+encode
             async with aiohttp.get(uir, headers = option) as resp:
-                test = await resp.content.read()
-                searchregex = re.compile("<h3 class=\"r\"><a href=\"\/url\?url=([^`]*?)&amp;")
-                searchregex2 = re.compile("<h3 class=\"r\"><a href=\"([^`]*?)\"")
-                searchregex3 = re.compile("<h3 class=\"r\"><a href=\"http:\/\/www.google.com\/url\?url=([^`]*?)&amp;")
-                query_find = searchregex.findall("{}".format(test))
+                test = str(await resp.content.read())
+                query_find = re.findall(regex[1], test)
                 if query_find == []:
-                    query_find = searchregex2.findall("{}".format(test))
+                    query_find = re.findall(regex[2], test)
                     try:
                         if re.search("\/url?url=", query_find[0]) == True:
                             query_find = query_find[0]
@@ -120,14 +117,14 @@ class AdvancedGoogle:
                     await self.bot.say("Here is your link: {} ".format(decode))
             #End of generic search
                     
-    def unescape(self, query):
-        break_sub = re.sub("<br \/>", "\n", query)
-        CR_LF_sub = re.sub("(?:\\\\[rn])", "", break_sub)#CR_LF_sub is Carriage Return, Line Feed sub.
-        single_quote_sub = re.sub("(?:\\\\['])", "'", CR_LF_sub)
-        percent_sub = re.sub("%25", "%", single_quote_sub)
-        left_parentheses_sub = re.sub("\(", "%28", percent_sub)
-        right_parentheses_sub = re.sub("\)", "%29", left_parentheses_sub)
-        return right_parentheses_sub
+    def unescape(self, msg):
+        regex = ["<br \/>", "(?:\\\\[rn])", "(?:\\\\['])", "%25", "\(", "\)"]
+        subs = ["\n", "", "'", "%", "%28", "%29"]
+        
+        for i in range(len(regex)):
+            sub = re.sub(regex[i], subs[i], msg)
+            msg = sub
+        return msg
         
 def setup(bot):
     n = AdvancedGoogle(bot)
