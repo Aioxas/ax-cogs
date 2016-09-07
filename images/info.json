@@ -1,0 +1,7 @@
+{
+    "AUTHOR" : "Aioxas, irdumb",
+    "INSTALL_MSG" : "Thanks for installing my cog. \n[p]help Images should be enough. If not [p]add_image, [p]imageset, [p]del_image, [p]list_images",
+    "NAME" : "images",
+    "SHORT" : "Local image summoning, has the ability to add, remove, or list images. Based on irdumb's sadface cog.",
+    "DESCRIPTION" : "images has the ability to add or remove images that will trigger with the keyword they were added in. This cog is per-server. You can also list the images per specified type.\n This cog was made possible by irdumb's sadface cog, as it provided an existing structure."
+}
