@@ -114,9 +114,9 @@ class Horoscope:
         print(ZODIAC[index])
         return ZODIAC[index][1]
         
-    @commands.command(name="fortune",pass_context=True, no_pm=True)
+    @commands.command(name="cookie",pass_context=True, no_pm=True)
     #@commands.cooldown(10, 60, commands.BucketType.user)
-    async def _fortune(self):
+    async def _cookie(self):
         """Retrieves a random fortune cookie fortune."""
         option = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
         regex = ["class=\"cookie-link\">([^`]*?)<\/a>", "<p>([^`]*?)<\/p>", "(?:\\\\['])", "<strong>([^`]*?)<\/strong>", "<\/strong><\/a>([^`]*?)<br>", "3\)<\/strong><\/a>([^`]*?)<\/div>"]
