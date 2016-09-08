@@ -49,6 +49,9 @@ class Images:
         type = type.lower()
         name = name.lower()
         option = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36', 'CONTENT-TYPE': 'image/{}'.format(type)}
+        if not url.endswith((".gif", ".gifv", ".png")):
+            await self.bot.say("Links ending in .gif, .png, and .gifv are the only ones accepted, please try again with a valid image link, thanks.")
+            return
         if url.endswith(".gifv"):
             url = url.replace(".gifv", ".gif")
         if type not in self.image:
@@ -95,6 +98,33 @@ class Images:
             except FileNotFoundError:
                 await self.bot.say("For some unknown reason, your image is not available in the default directory, that is, data/images/images."
                 " This means that it can't be removed. But it has been successfully removed from the images list.")
+
+    @commands.command(pass_context=True, no_pm=True)
+    @checks.mod_or_permissions(manage_roles=True)
+    async def edit_image(self, ctx, type, name, newname):
+        """Allows you to edit the keyword that triggers the image from the specified type's list
+        GIF and PNG are only supported."""
+        type = type.lower()
+        name = name.lower()
+        if type not in self.image:
+            await self.bot.say("Please specify a valid type. PNG or GIF are the only types supported")
+        else:
+            try:
+                if type in self.images:
+                    if name in self.images[type]:
+                        self.images[type].remove(name)
+                        self.images[type].append(newname)
+                        self.images[type].sort()
+                    else:
+                        await self.bot.say("{} is not a valid name, please make sure the name of the"
+                        " image that you want to remove is in the type you specified."
+                        " Use [p]list_images {} to verify it's there.".format(name, type))
+                    dataIO.save_json("data/images/servers.json", self.servers)
+                    await self.bot.say("{} in the {} list has been renamed to {}".format(name, type, newname))
+                    os.rename("data/images/images/{}.{}".format(name,type),"data/images/images/{}.{}".format(newname,type))
+            except FileNotFoundError:
+                await self.bot.say("For some unknown reason, your image is not available in the default directory, that is, data/images/images."
+                " This means that it can't be removed. But it has been successfully removed from the images list.")
                     
     @commands.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
@@ -117,8 +147,10 @@ class Images:
         # check if setting is on in this server
         #let images happen in PMs always
         server = message.server
-        if message.server.me == message.author:
-            return
+        bots = list(n.id for n in server.members if n.bot)
+        for n in bots:
+            if n == message.author.id:
+                return
         for m in self.bot.command_prefix:
             if message.content.startswith(m):
                 return
