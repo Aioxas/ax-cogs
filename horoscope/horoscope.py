@@ -99,8 +99,8 @@ class Horoscope:
         index = (year - czodiac[0][0]) % 12
         return czodiac[index][1]
         
-    @commands.command(name="cookie",pass_context=True, no_pm=True)
-    #@commands.cooldown(10, 60, commands.BucketType.user)
+    @commands.command(name="cookie", no_pm=True)
+    @commands.cooldown(10, 60, commands.BucketType.user)
     async def _cookie(self):
         """Retrieves a random fortune cookie fortune."""
         option = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
