@@ -18,31 +18,32 @@ class Horoscope:
     @commands.cooldown(10, 60, commands.BucketType.user)
     async def _horoscope(self, ctx, *, sign : str):
         """Retrieves today's horoscope for a zodiac sign.
-        Aries: Mar 21 - Apr 19
-        Taurus: Apr 20 - May 20
-        Gemini: May 21 - Jun 20
-        Cancer: Jun 21 - Jul 22 
-        Leo: Jul 23 - Aug 22
-        Virgo: Aug 23 - Sep 22
-        Libra: Sep 23 - Oct 22
-        Scorpio: Oct 23 - Nov 21
-        Sagittarius: Nov 22 - Dec 21
-        Capricorn: Dec 22 - Jan 19
-        Aquarius: Jan 20 - Feb 18
-        Pisces: Feb 19 - Mar 20
+        Works with both signs and birthdays. Make sure to do Month/Day.
+        
+        Western Zodiac:
+        Capricorn, Aquarius, Pisces, Aries, Taurus, Gemini, Cancer, Leo,
+        Virgo, Libra, Scorpio Sagittarius.
+        
+        For Chinese zodiac, it's chinese signs or year.
+        
+        Chinese Zodiac:
+        Ox, Goat, Rat, Snake, Dragon, Tiger, Rabbit, Horse, Monkey,
+        Rooster, Dog, Pig
+        
         Examples: [p]horo love, virgo
                   [p]horo chinese, rooster
                   [p]horo daily, virgo
-                  [p]horo whatever, virgo"""
+                  [p]horo whatever, virgo
+                  [p]horo chinese, 1901
+                  [p]horo love, 02/10"""
         option = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
-        signs = {"aries", "taurus", "gemini", "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces"}
+        signs = ["capricorn", "aquarius", "pisces", "aries", "taurus", "gemini", "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius"]
         chinese_signs = ["ox", "goat", "rat", "snake", "dragon", "tiger", "rabbit", "horse", "monkey", "rooster", "dog", "pig"]
         horo_types = {"love" : "http://www.tarot.com/daily-love-horoscope/", "daily" : "http://www.tarot.com/daily-horoscope/",
         "chinese" : "http://www.horoscope.com/us/horoscopes/chinese/horoscope-chinese-daily-today.aspx?sign="}
         regex = ["<div class=\"block-horoscope-chinese-text f16 l20\">([^`]*?)<\/div>", "<p class=\"js-today_interp_copy\">([^`]*?)<\/p>"]
         subs = "\n\s*"
         try:
-
             horos = sign.split(', ')
             type = horos[0]
             horos.remove(type)
@@ -65,30 +66,7 @@ class Horoscope:
                     sign = sign.split("/")
                     Month = sign[0]
                     Day = sign[1]
-                    if ((int(Month)==12 and int(Day) >= 22)or(int(Month)==1 and int(Day)<= 19)):
-                        sign = "capricorn"
-                    elif ((int(Month)==1 and int(Day) >= 20)or(int(Month)==2 and int(Day)<= 17)):
-                        sign = "aquarium"
-                    elif ((int(Month)==2 and int(Day) >= 18)or(int(Month)==3 and int(Day)<= 19)):
-                        sign = "pisces"
-                    elif ((int(Month)==3 and int(Day) >= 20)or(int(Month)==4 and int(Day)<= 19)):
-                        sign = "aries"
-                    elif ((int(Month)==4 and int(Day) >= 20)or(int(Month)==5 and int(Day)<= 20)):
-                        sign = "taurus"
-                    elif ((int(Month)==5 and int(Day) >= 21)or(int(Month)==6 and int(Day)<= 20)):
-                        sign = "gemini"
-                    elif ((int(Month)==6 and int(Day) >= 21)or(int(Month)==7 and int(Day)<= 22)):
-                        sign = "cancer"
-                    elif ((int(Month)==7 and int(Day) >= 23)or(int(Month)==8 and int(Day)<= 22)): 
-                        sign = "leo"
-                    elif ((int(Month)==8 and int(Day) >= 23)or(int(Month)==9 and int(Day)<= 22)): 
-                        sign = "virgo"
-                    elif ((int(Month)==9 and int(Day) >= 23)or(int(Month)==10 and int(Day)<= 22)):
-                        sign = "libra"
-                    elif ((int(Month)==10 and int(Day) >= 23)or(int(Month)==11 and int(Day)<= 21)): 
-                        sign = "scorpio"
-                    elif ((int(Month)==11 and int(Day) >= 22)or(int(Month)==12 and int(Day)<= 21)):
-                        sign = "sagittarius"
+                    sign = signs[self.getzodiac_signs(Month, Day)]
                 uri = horo_types[type]
                 uir = uri + sign
                 async with aiohttp.get(uir, headers = option) as resp:
@@ -102,17 +80,24 @@ class Horoscope:
 
         except IndexError:
             await self.bot.say("Your search is not valid, please follow the examples.\n[p]horo love, virgo\n[p]horo life, pisces\n[p]horo whatever, sagittarius\n[p]horo daily, virgo\n[p]horo chinese, rooster")
-
-            
+    
+    def getzodiac_signs(self, Month, Day):
+        times = [((int(Month)==12 and int(Day) >= 22)or(int(Month)==1 and int(Day)<= 19)), ((int(Month)==1 and int(Day) >= 20)or(int(Month)==2 and int(Day)<= 17)),
+        ((int(Month)==2 and int(Day) >= 18)or(int(Month)==3 and int(Day)<= 19)), ((int(Month)==3 and int(Day) >= 20)or(int(Month)==4 and int(Day)<= 19)),
+        ((int(Month)==4 and int(Day) >= 20)or(int(Month)==5 and int(Day)<= 20)), ((int(Month)==5 and int(Day) >= 21)or(int(Month)==6 and int(Day)<= 20)), 
+        ((int(Month)==6 and int(Day) >= 21)or(int(Month)==7 and int(Day)<= 22)), ((int(Month)==7 and int(Day) >= 23)or(int(Month)==8 and int(Day)<= 22)), 
+        ((int(Month)==8 and int(Day) >= 23)or(int(Month)==9 and int(Day)<= 22)), ((int(Month)==9 and int(Day) >= 23)or(int(Month)==10 and int(Day)<= 22)), 
+        ((int(Month)==10 and int(Day) >= 23)or(int(Month)==11 and int(Day)<= 21)), ((int(Month)==11 and int(Day) >= 22)or(int(Month)==12 and int(Day)<= 21))]
+        for m in times:
+            if m:
+                return times.index(m)
+                
     def getchinese_signs(self, year):
-        ZODIAC = [(1900, "Rat"), (1901, "Ox"), (1902, "Tiger"), (1903, "Rabbit"),
+        czodiac = [(1900, "Rat"), (1901, "Ox"), (1902, "Tiger"), (1903, "Rabbit"),
         (1904, "Dragon"), (1905, "Snake"), (1906, "Horse"), (1907, "Sheep"),
         (1908, "Monkey"), (1909, "Rooster"), (1910, "Dog"), (1911, "Pig")]
-        index = (year - ZODIAC[0][0]) % 12
-        print(ZODIAC)
-        print(index)
-        print(ZODIAC[index])
-        return ZODIAC[index][1]
+        index = (year - czodiac[0][0]) % 12
+        return czodiac[index][1]
         
     @commands.command(name="cookie",pass_context=True, no_pm=True)
     #@commands.cooldown(10, 60, commands.BucketType.user)
@@ -123,7 +108,6 @@ class Horoscope:
         url = "http://www.fortunecookiemessage.com"
         async with aiohttp.get(url, headers = {"encoding" : "utf-8"}) as resp:
             test = str(await resp.text())
-            print(test)
             fortune = re.findall(regex[0], test)
             fortest = re.match("<p>", fortune[0])
             if fortest is not None:

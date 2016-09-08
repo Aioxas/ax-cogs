@@ -19,6 +19,7 @@ class Images:
         self.servers = dataIO.load_json('data/images/servers.json')
         self.image = self.servers['image']
         self.images = self.servers['images']
+        self.typefail = "Please specify a valid type. PNG or GIF are the only types supported"
     # doesn't make sense to use this command in a pm, because pms aren't in servers
     # mod_or_permissions needs something in it otherwise it's mod or True which is always True
     
@@ -55,7 +56,7 @@ class Images:
         if url.endswith(".gifv"):
             url = url.replace(".gifv", ".gif")
         if type not in self.image:
-            await self.bot.say("Please specify a valid type. PNG or GIF are the only types supported")
+            await self.bot.say(self.typefail)
         else:
             try:
                 await self.bot.say("Downloading {}.".format(name))
@@ -82,7 +83,7 @@ class Images:
         type = type.lower()
         name = name.lower()
         if type not in self.image:
-            await self.bot.say("Please specify a valid type. PNG or GIF are the only types supported")
+            await self.bot.say(self.typefail)
         else:
             try:
                 if type in self.images:
@@ -107,7 +108,7 @@ class Images:
         type = type.lower()
         name = name.lower()
         if type not in self.image:
-            await self.bot.say("Please specify a valid type. PNG or GIF are the only types supported")
+            await self.bot.say(self.typefail)
         else:
             try:
                 if type in self.images:
@@ -117,14 +118,14 @@ class Images:
                         self.images[type].sort()
                     else:
                         await self.bot.say("{} is not a valid name, please make sure the name of the"
-                        " image that you want to remove is in the type you specified."
+                        " image that you want to edit is in the type you specified."
                         " Use [p]list_images {} to verify it's there.".format(name, type))
                     dataIO.save_json("data/images/servers.json", self.servers)
                     await self.bot.say("{} in the {} list has been renamed to {}".format(name, type, newname))
                     os.rename("data/images/images/{}.{}".format(name,type),"data/images/images/{}.{}".format(newname,type))
             except FileNotFoundError:
                 await self.bot.say("For some unknown reason, your image is not available in the default directory, that is, data/images/images."
-                " This means that it can't be removed. But it has been successfully removed from the images list.")
+                " This means that it can't be edited. But it has been successfully edited in the image type's list.")
                     
     @commands.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
@@ -133,7 +134,7 @@ class Images:
         GIF and PNG are only supported"""
         type = type.lower()
         if type not in self.image:
-            await self.bot.say("Please specify a valid type. PNG or GIF are the only types supported")
+            await self.bot.say(self.typefail)
         else:
             if not self.images[type]:
                 await self.bot.say("Your {} list is empty.".format(type.upper()) +
