@@ -22,7 +22,7 @@ class Images:
         self.typefail = "Please specify a valid type. PNG or GIF are the only types supported"
     # doesn't make sense to use this command in a pm, because pms aren't in servers
     # mod_or_permissions needs something in it otherwise it's mod or True which is always True
-    
+
     @commands.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
     async def imageset(self, ctx):
@@ -55,6 +55,10 @@ class Images:
             return
         if url.endswith(".gifv"):
             url = url.replace(".gifv", ".gif")
+        for img in self.images:
+            if name in self.images[img]:
+                await self.bot.say("This keyword already exists, please use another keyword.")
+                return
         if type not in self.image:
             await self.bot.say(self.typefail)
         else:
@@ -74,7 +78,7 @@ class Images:
                 await self.bot.say("It seems your url is not valid,"
                 " please make sure you are not typing names with spaces as they are and then the url."
                 " If so, do [p]add_image type name_with_spaces url")
-                        
+
     @commands.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
     async def del_image(self, ctx, type, name):
@@ -92,7 +96,7 @@ class Images:
                     else:
                         await self.bot.say("{} is not a valid name, please make sure the name of the"
                         " image that you want to remove is in the type you specified."
-                        " Use [p]list_images {} to verify it's there.".format(name, type))    
+                        " Use [p]list_images {} to verify it's there.".format(name, type))
                     dataIO.save_json("data/images/servers.json", self.servers)
                     await self.bot.say("{} has been removed from the {} list".format(name, type))
                     os.remove("data/images/images/{}.{}".format(name,type))
@@ -109,24 +113,28 @@ class Images:
         name = name.lower()
         if type not in self.image:
             await self.bot.say(self.typefail)
-        else:
-            try:
-                if type in self.images:
-                    if name in self.images[type]:
-                        self.images[type].remove(name)
-                        self.images[type].append(newname)
-                        self.images[type].sort()
-                    else:
-                        await self.bot.say("{} is not a valid name, please make sure the name of the"
-                        " image that you want to edit is in the type you specified."
-                        " Use [p]list_images {} to verify it's there.".format(name, type))
-                    dataIO.save_json("data/images/servers.json", self.servers)
-                    await self.bot.say("{} in the {} list has been renamed to {}".format(name, type, newname))
-                    os.rename("data/images/images/{}.{}".format(name,type),"data/images/images/{}.{}".format(newname,type))
-            except FileNotFoundError:
-                await self.bot.say("For some unknown reason, your image is not available in the default directory, that is, data/images/images."
-                " This means that it can't be edited. But it has been successfully edited in the image type's list.")
-                    
+            return
+        for img in self.images:
+            if newname in self.images[img]:
+                await self.bot.say("This keyword already exists, please use another keyword.")
+                return
+        try:
+            if type in self.images:
+                if name in self.images[type]:
+                    self.images[type].remove(name)
+                    self.images[type].append(newname)
+                    self.images[type].sort()
+                else:
+                    await self.bot.say("{} is not a valid name, please make sure the name of the"
+                    " image that you want to edit is in the type you specified."
+                    " Use [p]list_images {} to verify it's there.".format(name, type))
+                dataIO.save_json("data/images/servers.json", self.servers)
+                await self.bot.say("{} in the {} list has been renamed to {}".format(name, type, newname))
+                os.rename("data/images/images/{}.{}".format(name,type),"data/images/images/{}.{}".format(newname,type))
+        except FileNotFoundError:
+            await self.bot.say("For some unknown reason, your image is not available in the default directory, that is, data/images/images."
+            " This means that it can't be edited. But it has been successfully edited in the image type's list.")
+
     @commands.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
     async def list_images(self, ctx, type):
@@ -148,10 +156,8 @@ class Images:
         # check if setting is on in this server
         #let images happen in PMs always
         server = message.server
-        bots = list(n.id for n in server.members if n.bot)
-        for n in bots:
-            if n == message.author.id:
-                return
+        if message.author.bot:
+            return
         for m in self.bot.command_prefix:
             if message.content.startswith(m):
                 return
@@ -166,7 +172,7 @@ class Images:
         msg = message.content.lower().split()
         for m in msg:
             for type in self.images:
-                image_find = re.findall("|".join(self.images[type]), m)
+                image_find = re.findall("\\b"+"\\b|\\b".join(self.images[type])+"\\b", m)
                 if len(image_find) > 0:
                     if image_find[0] in self.images[type]:
                         await self.bot.send_file(message.channel, self.image[type].format(image_find[0]))
