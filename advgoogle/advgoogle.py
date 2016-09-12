@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from .utils import checks
 from __main__ import send_cmd_help
 from random import choice
 import aiohttp
@@ -11,7 +10,7 @@ class AdvancedGoogle:
 
     def __init__(self, bot):
         self.bot = bot
-        
+
     @commands.command(name = "advgoogle", pass_context=True, no_pm=True)
     @commands.cooldown(5, 60, commands.BucketType.user)
     async def _advgoogle(self, ctx, text):
@@ -23,12 +22,12 @@ class AdvancedGoogle:
         Another example: google maps New York
         Another example: google images cats > Returns a random image based on the query
         LEGACY EDITION! SEE HERE! https://twentysix26.github.io/Red-Docs/red_cog_approved_repos/#refactored-cogs
-        
+
         Originally made by Kowlin https://github.com/Kowlin/refactored-cogs edited by Axioxas"""
         search_type = ctx.message.content[len(ctx.prefix+ctx.command.name)+1:].lower().split(" ")
         option = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
         regex = [",\"ou\":\"([^`]*?)\"", "<h3 class=\"r\"><a href=\"\/url\?url=([^`]*?)&amp;", "<h3 class=\"r\"><a href=\"([^`]*?)\""]
-        
+
         #Start of Image
         if search_type[0] == "image":
             search_valid = str(ctx.message.content[len(ctx.prefix+ctx.command.name)+1:].lower())
@@ -39,7 +38,7 @@ class AdvancedGoogle:
                 quary = str(ctx.message.content[len(ctx.prefix+ctx.command.name)+7:].lower())
                 encode = urllib.parse.quote_plus(quary,encoding='utf-8',errors='replace')
                 uir = uri+encode
-                
+
                 async with aiohttp.get(uir, headers = option) as resp:
                     test = await resp.content.read()
                     unicoded = test.decode("unicode_escape")
@@ -116,16 +115,16 @@ class AdvancedGoogle:
                     decode = self.unescape(query_find)
                     await self.bot.say("Here is your link: {} ".format(decode))
             #End of generic search
-                    
+
     def unescape(self, msg):
         regex = ["<br \/>", "(?:\\\\[rn])", "(?:\\\\['])", "%25", "\(", "\)"]
         subs = ["\n", "", "'", "%", "%28", "%29"]
-        
+
         for i in range(len(regex)):
             sub = re.sub(regex[i], subs[i], msg)
             msg = sub
         return msg
-        
+
 def setup(bot):
     n = AdvancedGoogle(bot)
     bot.add_cog(n)

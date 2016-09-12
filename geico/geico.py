@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from .utils import checks
 from __main__ import send_cmd_help
 from random import choice
 from cogs.utils.chat_formatting import *
@@ -13,7 +12,7 @@ class Geico:
     """A 15-minute call could save you 15 percent (or more) on car insurance."""
     def __init__(self, bot):
         self.bot = bot
-        
+
     @commands.command(name="bash", pass_context=True, no_pm=True)
     @commands.cooldown(3, 60, commands.BucketType.user)
     async def _bash(self, ctx, num : int=1):
