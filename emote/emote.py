@@ -5,6 +5,7 @@ from .utils import checks
 import os
 import re
 import aiohttp
+from PIL import Image
 
 # if this seem hard to read/understand, remove the comments. Might make it easier
 
@@ -30,10 +31,10 @@ class Emote:
             self.servers[server.id] = dict({"status" : False})
         else:
             self.servers[server.id]["status"] = not self.servers[server.id]["status"]
-        #for a toggle, settings should save here in case bot fails to send message
         if "emotes" not in self.servers[server.id]:
             self.servers[server.id]["emotes"] = dict()
         dataIO.save_json('data/emote/servers.json', self.servers)
+        #for a toggle, settings should save here in case bot fails to send message
         if self.servers[server.id]["status"]:
             await self.bot.say('emotes on. Please turn this off in the Red - DiscordBot server. This is only an example cog.')
         else:
@@ -202,87 +203,171 @@ class Emote:
 
     @commands.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
-    async def compare_emotes(self, ctx, style):
+    async def compare_emotes(self, ctx, style, alls : str=None):
         """Allows you to compare keywords to files
         or files to keywords and then make sure that
-        they all coincide
+        they all coincide.
         Keywords to Files name: K2F
         Files to Keywords name: F2K
-        [p]compare_emotes K2F"""
+        [p]compare_emotes K2F
+        [p]compare_emotes K2F all
+        [p]compare_emotes F2K all"""
         server = ctx.message.server
         style = style.lower()
-        istyles = sorted(self.servers[server.id]["emotes"])
+        if alls is not None:
+            alls = alls.lower()
         styleset = ["k2f", "f2k"]
         if server.id not in self.servers:
             #default off
             self.servers[server.id] = dict({"status" : False})
-            dataIO.save_json("data/emote/servers.json", self.servers)
             if "emotes" not in self.servers[server.id]:
                 self.servers[server.id]["emotes"] = dict()
-
+            dataIO.save_json("data/emote/servers.json", self.servers)
         if style not in styleset:
             return
-        count = 0
         msg = "Keywords deleted due to missing files in the emotes list:\n"
         c = list()
         for entry in os.scandir(self.emote):
             c.append(entry.name)
-        missing = list()
         if style == styleset[0]:
-            for n in istyles:
-                cat = "|".join(c)
-                if not n.isalnum():
-                    z = re.compile(r"\B"+n+r"\b")
-                else:
-                    z = re.compile(r"\b"+n+r"\b")
-                if z.search(cat) is None:
-                    missing.append(n)
-            if not missing:
-                await self.bot.say("All files and keywords are accounted for")
-                return
-            for m in missing:
-                if m in self.servers[server.id]["emotes"]:
-                    del self.servers[server.id]["emotes"][m]
-            dataIO.save_json("data/emote/servers.json", self.servers)
-            s = "\n"
-            style = 10
-            counter = len(missing) + 10
-            while style <= counter:
-                if style <= 10:
-                    y = s.join(missing[:style])
-                    await self.bot.say(msg + y)
-                    if style >= len(missing):
-                        return
-                    style += 10
-                elif style > 10:
-                    style2 = style - 10
-                    y = s.join(missing[style2:style])
-                    await self.bot.say("Continuation:\n{}".format(y))
-                    if style >= len(missing):
-                        return
-                    style += 10
-                await self.bot.say("Do you want to continue seeing the list? Yes/No")
-                answer = await self.bot.wait_for_message(timeout=15,
-                                             author=ctx.message.author)
-                if answer is None:
+            if alls == "all":
+                servers = sorted(self.servers)
+                servers.remove("emote")
+                for servs in servers:
+                    missing = list()
+                    istyles = sorted(self.servers[servs]["emotes"])
+                    for n in istyles:
+                        cat = "|".join(c)
+                        if not n.isalnum():
+                            z = re.compile(r"\B"+n+r"\b")
+                        else:
+                            z = re.compile(r"\b"+n+r"\b")
+                        if z.search(cat) is None:
+                            missing.append(n)
+                    if not missing:
+                        await self.bot.say("All files and keywords are accounted for in " + servs)
+                        if len(servers) == servers.index(servs):
+                            return
+                        else:
+                            continue
+                    for m in missing:
+                        if m in self.servers[servs]["emotes"]:
+                            del self.servers[servs]["emotes"][m]
+                    dataIO.save_json("data/emote/servers.json", self.servers)
+                    s = "\n"
+                    style = 10
+                    counter = len(missing) + 10
+                    while style <= counter:
+                        if style <= 10:
+                            y = s.join(missing[:style])
+                            await self.bot.say(msg + y)
+                            if style >= len(missing):
+                                break
+                            style += 10
+                        elif style > 10:
+                            style2 = style - 10
+                            y = s.join(missing[style2:style])
+                            await self.bot.say("Continuation:\n{}".format(y))
+                            if style >= len(missing):
+                                break
+                            style += 10
+                        await self.bot.say("Do you want to continue seeing the list? Yes/No")
+                        answer = await self.bot.wait_for_message(timeout=15,
+                                                     author=ctx.message.author)
+                        if answer is None:
+                            break
+                        elif answer.content.lower().strip() == "yes":
+                            continue
+                        else:
+                            break
+            else:
+                istyles = sorted(self.servers[server.id]["emotes"])
+                for n in istyles:
+                    cat = "|".join(c)
+                    if not n.isalnum():
+                        z = re.compile(r"\B"+n+r"\b")
+                    else:
+                        z = re.compile(r"\b"+n+r"\b")
+                    if z.search(cat) is None:
+                        missing.append(n)
+                if not missing:
+                    await self.bot.say("All files and keywords are accounted for")
                     return
-                elif answer.content.lower().strip() == "yes":
-                    continue
-                else:
-                    return
+                for m in missing:
+                    if m in self.servers[server.id]["emotes"]:
+                        del self.servers[server.id]["emotes"][m]
+                dataIO.save_json("data/emote/servers.json", self.servers)
+                s = "\n"
+                style = 10
+                counter = len(missing) + 10
+                while style <= counter:
+                    if style <= 10:
+                        y = s.join(missing[:style])
+                        await self.bot.say(msg + y)
+                        if style >= len(missing):
+                            return
+                        style += 10
+                    elif style > 10:
+                        style2 = style - 10
+                        y = s.join(missing[style2:style])
+                        await self.bot.say("Continuation:\n{}".format(y))
+                        if style >= len(missing):
+                            return
+                        style += 10
+                    await self.bot.say("Do you want to continue seeing the list? Yes/No")
+                    answer = await self.bot.wait_for_message(timeout=15,
+                                                 author=ctx.message.author)
+                    if answer is None:
+                        return
+                    elif answer.content.lower().strip() == "yes":
+                        continue
+                    else:
+                        return
 
         elif style == styleset[1]:
-            for cat in c:
-                listing = cat.split('.')
-                if listing[0] not in self.servers[server.id]["emotes"]:
-                    self.servers[server.id]["emotes"][listing[0]] = cat
-                    count += 1
-            if count == 0:
-                await self.bot.say("All files and keywords are accounted for")
-                return
-            dataIO.save_json("data/emote/servers.json", self.servers)
-            await self.bot.say(str(count) + " Keywords have been successfully added to the"
-                                                                        " type lists")
+            if alls == "all":
+                servers = sorted(self.servers)
+                servers.remove("emote")
+                if not c:
+                    await self.bot.say("It is impossible to verify the integrity of files and keywords due to missing files."
+                    "Please make sure that the files have not been deleted.")
+                    return
+                for servs in servers:
+                    count = 0
+                    for cat in c:
+                        listing = cat.split('.')
+                        if listing[0] not in self.servers[servs]["emotes"]:
+                            self.servers[servs]["emotes"][listing[0]] = cat
+                            count += 1
+                    if count == 0:
+                        await self.bot.say("All files and keywords are accounted for in "+ servs)
+                        if len(servers) == servers.index(servs):
+                            return
+                        else:
+                            continue
+                    dataIO.save_json("data/emote/servers.json", self.servers)
+                    await self.bot.say(str(count) +
+                    " Keywords have been successfully added to the"
+                    " image list in " + servs)
+            else:
+                if not c:
+                    await self.bot.say("It is impossible to verify the integrity of files and keywords due to missing files."
+                    "Please make sure that the files have not been deleted.")
+                    return
+                count = 0
+                for cat in c:
+                    listing = cat.split('.')
+                    if listing[0] not in self.servers[server.id]["emotes"]:
+                        self.servers[server.id]["emotes"][listing[0]] = cat
+                        count += 1
+                if count == 0:
+                    await self.bot.say("All files and keywords are accounted for")
+                    return
+                dataIO.save_json("data/emote/servers.json", self.servers)
+                await self.bot.say(str(count) +
+                " Keywords have been successfully added to the"
+                " image list")
+
     async def check_emote(self, message):
         # check if setting is on in this server
         #let emotes happen in PMs always
@@ -302,10 +387,13 @@ class Emote:
             # emotes is off, so ignore
             if "status" not in self.servers[server.id]:
                 self.servers[server.id] = dict({"status" : False})
+                if "emotes" not in self.servers[server.id]:
+                    self.servers[server.id]["emotes"] = dict()
                 dataIO.save_json("data/emote/servers.json", self.servers)
             if not self.servers[server.id]["status"]:
                 return
         msg = message.content.lower().split()
+        listed = list()
         for m in msg:
             for n in sorted(self.servers[server.id]["emotes"]):
                 if not n.isalnum():
@@ -314,7 +402,34 @@ class Emote:
                     regex = re.compile(r"\b"+n+r"\b")
                 emote_find = regex.findall(m)
                 if emote_find:
-                    await self.bot.send_file(message.channel, self.emote+self.servers[server.id]["emotes"][emote_find[0]])
+                    listed.append(self.servers[server.id]["emotes"][emote_find[0]])
+        pnglisted = list(filter(lambda n: not n.endswith('.gif'), listed))
+        giflisted = list(filter(lambda n: n.endswith('.gif'), listed))
+        if pnglisted and len(pnglisted) > 1:
+            ims = self.imgprocess(pnglisted)
+            await self.bot.send_file(message.channel, self.emote+ims)
+        elif pnglisted:
+            await self.bot.send_file(message.channel, self.emote+pnglisted[0])
+        if giflisted:
+            for ims in giflisted:
+                await self.bot.send_file(message.channel, self.emote+ims)
+
+    def imgprocess(self, listed):
+        for i in range(len(listed)):
+            listed[i] = self.emote + listed[i]
+        images = [Image.open(i) for i in listed]
+        widths, heights = zip(*(i.size for i in images))
+        total_width = sum(widths)
+        max_height = max(heights)
+        count = 0
+        new_im = Image.new("RGBA", (total_width, max_height))
+        x_offset = 0
+        for im in images:
+            new_im.paste(im, (x_offset,0))
+            x_offset += im.size[0]
+        cat = "test.png"
+        new_im.save("data/emote/images/" + cat)
+        return cat
 
 def check_folders():
     # create data/emote if not there
