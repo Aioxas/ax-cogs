@@ -128,13 +128,12 @@ class Horoscope:
     @commands.cooldown(10, 60, commands.BucketType.user)
     async def _cookie(self):
         """Retrieves a random fortune cookie fortune."""
-        option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)'
-                  ' Gecko/20100101 Firefox/40.1'}
         regex = ["class=\"cookie-link\">([^`]*?)<\/a>", "<p>([^`]*?)<\/p>",
                  "(?:\\\\['])", "<strong>([^`]*?)<\/strong>",
                  "<\/strong><\/a>([^`]*?)<br>",
                  "3\)<\/strong><\/a>([^`]*?)<\/div>"]
         url = "http://www.fortunecookiemessage.com"
+        await self.file_check()
         async with aiohttp.get(url, headers={"encoding": "utf-8"}) as resp:
             test = str(await resp.text())
             fortune = re.findall(regex[0], test)
@@ -145,13 +144,6 @@ class Horoscope:
             info = re.findall(regex[4], test)
             info[0] = html.unescape(info[0])
             dailynum = re.findall(regex[5], test)
-            if not os.path.exists("data/horoscope/cookie.png"):
-                url = "http://www.fortunes-cookies.com/wp-content/uploads"
-                "/2014/04/Fortune_Cookie_18.png"
-                async with aiohttp.get(url, headers=option) as resp:
-                    test = await resp.read()
-                    with open("data/horoscope/cookie.png", "wb") as f:
-                        f.write(test)
             self.fortune_process(fortune[0])
             await self.bot.say("Your fortune is:")
             await self.bot.upload("data/horoscope/cookie-edit.png")
@@ -159,18 +151,35 @@ class Horoscope:
                                info[1] + "\n" + title[2] + dailynum[0])
             os.remove("data/horoscope/cookie-edit.png")
 
+    async def file_check(self):
+        urls = ["https://images-2.discordapp.net/.eJwNwcENwyAMAMBdGABDCWCyDSKIoCYxwuZVdff27qPWvNSuTpHBO8DRudA8NAvN3Kp"
+                "uRO2qeXTWhW7IIrmcd32EwQbjMCRMaJNxPmwILxcRg_9Da_yWYoQ3dV5z6fE09f0BC6EjAw.B0sII_QLbL9kJo6Zbb4GuO4MQNw",
+                "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf"]
+        option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)'
+                  ' Gecko/20100101 Firefox/40.1'}
+        if not os.path.exists("data/horoscope/cookie.png"):
+            async with aiohttp.get(urls[0], headers=option) as resp:
+                test = await resp.read()
+                with open("data/horoscope/cookie.png", "wb") as f:
+                    f.write(test)
+        if not os.path.exists("data/horoscope/FortuneCookieNF.ttf"):
+            async with aiohttp.get(urls[1], headers=option) as resp:
+                test = await resp.read()
+                with open("data/horoscope/FortuneCookieNF.ttf", "wb") as f:
+                    f.write(test)
+
     def fortune_process(self, fortune):
-        img = Image.open("data/horoscope/cookie.png").rotate(-5, expand=1)
+        img = Image.open("data/horoscope/cookie.png")
         draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype("arial.ttf", 15)
+        font = ImageFont.truetype("data/horoscope/FortuneCookieNF.ttf", 15)
         line = fortune.split()
         sep = " "
-        line1 = sep.join(line[:7])
-        line2 = sep.join(line[7:14])
-        line3 = sep.join(line[14:])
-        draw.text((210, 75), line1, (0, 0, 0), font=font, align="center")
-        draw.text((210, 90), line2, (0, 0, 0), font=font, align="center")
-        draw.text((210, 105), line3, (0, 0, 0), font=font, align="center")
+        line1 = sep.join(line[:5])
+        line2 = sep.join(line[5:10])
+        line3 = sep.join(line[10:])
+        draw.text((134, 165), line1, (0, 0, 0), font=font, align="center")
+        draw.text((134, 180), line2, (0, 0, 0), font=font, align="center")
+        draw.text((134, 195), line3, (0, 0, 0), font=font, align="center")
         img.save("data/horoscope/cookie-edit.png")
 
 
