@@ -160,6 +160,7 @@ class Horoscope:
         if os.path.exists("data/horoscope/cookie.png"):
             async with aiohttp.get(urls[0], headers=option) as resp:
                 test = await resp.read()
+                meow = False
                 with open("data/horoscope/cookie.png", "rb") as e:
                     if len(test) != len(e.read()):
                         meow = True
@@ -176,6 +177,20 @@ class Horoscope:
                 test = await resp.read()
                 with open("data/horoscope/FortuneCookieNF.ttf", "wb") as f:
                     f.write(test)
+
+    @commands.command(name="font", no_pm=True)
+    @commands.cooldown(10, 60, commands.BucketType.user)
+    async def _font(self, url: str=None):
+        """Retrieves a random fortune cookie fortune."""
+        option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)'
+                  ' Gecko/20100101 Firefox/40.1'}
+        if url is None:
+            url = "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf"
+        async with aiohttp.get(url, headers=option) as resp:
+                test = await resp.read()
+                with open("data/horoscope/FortuneCookieNF.ttf", "wb") as f:
+                    f.write(test)
+        await self.bot.say("Font has been saved")
 
     def fortune_process(self, fortune):
         img = Image.open("data/horoscope/cookie.png")
