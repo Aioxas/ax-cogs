@@ -157,7 +157,16 @@ class Horoscope:
                 "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf"]
         option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)'
                   ' Gecko/20100101 Firefox/40.1'}
-        if not os.path.exists("data/horoscope/cookie.png"):
+        if os.path.exists("data/horoscope/cookie.png"):
+            async with aiohttp.get(urls[0], headers=option) as resp:
+                test = await resp.read()
+                with open("data/horoscope/cookie.png", "rb") as e:
+                    if len(test) != len(e.read()):
+                        meow = True
+                if meow:
+                    with open("data/horoscope/cookie.png", "wb") as f:
+                        f.write(test)
+        elif not os.path.exists("data/horoscope/cookie.png"):
             async with aiohttp.get(urls[0], headers=option) as resp:
                 test = await resp.read()
                 with open("data/horoscope/cookie.png", "wb") as f:
