@@ -2,6 +2,6 @@
     "AUTHOR" : "Kowlin and Aioxas",
     "INSTALL_MSG" : "Thanks for installing this. \nYou can start your search by doing [p]advgoogle",
     "NAME" : "Advanced Google",
-    "SHORT" : "Retrieves results from Google.",
+    "SHORT" : "Retrieves results from Google",
     "DESCRIPTION" : "Retrieves the first result of a Google search, or one of the results of a Google Image search.\nOriginally made by Kowlin from https://github.com/Kowlin/refactored-cogs . \nI took the liberty of editing some of his code to make it"
 }

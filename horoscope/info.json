@@ -3,5 +3,5 @@
     "INSTALL_MSG" : "Thanks for installing my cog. \n[p]help Horoscope should be enough. If not [p]help horo, [p]help cookie should.",
     "NAME" : "horoscope",
     "SHORT" : "Zodiac and Chinese Horoscope and Fortune Cookie cog",
-    "DESCRIPTION" : "You can check your love and daily horoscope, as well as chinese horoscope and a random fortune cookie."
+    "DESCRIPTION" : "You can check your love and daily horoscope, as well as chinese horoscope. Random fortune cookie included."
 }
