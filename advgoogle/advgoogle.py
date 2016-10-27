@@ -25,7 +25,7 @@ class AdvancedGoogle:
         https://twentysix26.github.io/Red-Docs/red_cog_approved_repos/#refactored-cogs
 
         Originally made by Kowlin https://github.com/Kowlin/refactored-cogs
-        edited by Axioxas"""
+        edited by Aioxas"""
         search_type = ctx.message.content[len(ctx.prefix+ctx.command.name)+1:].lower().split(" ")
         option = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'
