@@ -14,7 +14,7 @@ class AdvancedGoogle:
     @commands.cooldown(5, 60, commands.BucketType.user)
     async def _advgoogle(self, ctx, text):
         """Its google, you search with it.
-        Example: google A french pug
+        Example: google A magical pug
 
         Special search options are available; Image, Images, Maps
         Example: google image You know, for kids! > Returns first image
