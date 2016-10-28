@@ -1,11 +1,15 @@
 from discord.ext import commands
 from .utils.dataIO import dataIO
 from .utils import checks
+import aiohttp
 import os
 import re
-import aiohttp
-from PIL import Image
 
+try:
+    from PIL import Image
+    PIL = True
+except:
+    PIL = False
 # if this seem hard to read/understand, remove the comments. Might make it easier
 
 
@@ -464,9 +468,12 @@ def check_files():
 
 
 def setup(bot):
-    check_folders()
-    check_files()
-    n = Emote(bot)
-    # add an on_message listener
-    bot.add_listener(n.check_emote, 'on_message')
-    bot.add_cog(n)
+    if PIL:
+        check_folders()
+        check_files()
+        n = Emote(bot)
+        # add an on_message listener
+        bot.add_listener(n.check_emote, 'on_message')
+        bot.add_cog(n)
+    else:
+        raise RuntimeError("You need to run 'pip3 install Pillow'")

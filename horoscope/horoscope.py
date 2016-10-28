@@ -1,10 +1,15 @@
 from discord.ext import commands
-from cogs.utils.chat_formatting import box
+from .utils.chat_formatting import box
 import aiohttp
-import re
-import os
-from PIL import Image, ImageDraw, ImageFont
 import html
+import os
+import re
+
+try:
+    from PIL import Image, ImageDraw, ImageFont
+    PIL = True
+except:
+    PIL = False
 
 
 class Horoscope:
@@ -181,9 +186,13 @@ class Horoscope:
     @commands.command(name="font", no_pm=True)
     @commands.cooldown(10, 60, commands.BucketType.user)
     async def _font(self, url: str=None):
-        """Retrieves a random fortune cookie fortune."""
+        """Allows you to set the font that the fortune cookies are shown in.
+           Only accepts ttf."""
         option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)'
                   ' Gecko/20100101 Firefox/40.1'}
+        if not url.endswith("ttf"):
+            await self.bot.say("This is not a .ttf font, please use a .ttf font. Thanks")
+            return
         if url is None:
             url = "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf"
         async with aiohttp.get(url, headers=option) as resp:
@@ -214,6 +223,9 @@ def check_folders():
 
 
 def setup(bot):
-    check_folders()
-    n = Horoscope(bot)
-    bot.add_cog(n)
+    if PIL:
+        check_folders()
+        n = Horoscope(bot)
+        bot.add_cog(n)
+    else:
+        raise RuntimeError("You need to run 'pip3 install Pillow'")
