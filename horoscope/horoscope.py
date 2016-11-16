@@ -152,7 +152,7 @@ class Horoscope:
             self.fortune_process(fortune[0])
             await self.bot.say("Your fortune is:")
             await self.bot.upload("data/horoscope/cookie-edit.png")
-            await self.bot.say("\n" + title[0] + info[0] + "\n" + title[1] +
+            await self.bot.say("\n" + title[1] +
                                info[1] + "\n" + title[2] + dailynum[0])
             os.remove("data/horoscope/cookie-edit.png")
 
