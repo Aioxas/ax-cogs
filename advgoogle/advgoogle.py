@@ -43,7 +43,7 @@ class AdvancedGoogle:
             if search_valid == "image":
                 await self.bot.say("Please actually search something")
             else:
-                uri = "https://www.google.com/search?tbm=isch&tbs=isz:m&q="
+                uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
                 quary = str(ctx.message.content
                             [len(ctx.prefix+ctx.command.name)+7:].lower())
                 encode = urllib.parse.quote_plus(quary, encoding='utf-8',
@@ -67,7 +67,7 @@ class AdvancedGoogle:
             if search_valid == "image":
                 await self.bot.say("Please actually search something")
             else:
-                uri = "https://www.google.com/search?tbm=isch&tbs=isz:m&q="
+                uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
                 quary = str(ctx.message.content
                             [len(ctx.prefix+ctx.command.name)+7:].lower())
                 encode = urllib.parse.quote_plus(quary, encoding='utf-8',
@@ -100,7 +100,7 @@ class AdvancedGoogle:
             # End of Maps
         # Start of generic search
         else:
-            uri = "https://www.google.com/search?q="
+            uri = "https://www.google.com/search?hl=en&q="
             quary = str(ctx.message.content
                         [len(ctx.prefix+ctx.command.name)+1:])
             encode = urllib.parse.quote_plus(quary, encoding='utf-8',
