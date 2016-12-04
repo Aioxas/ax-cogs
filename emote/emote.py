@@ -2,6 +2,7 @@ from discord.ext import commands
 from .utils.dataIO import dataIO
 from .utils import checks
 import aiohttp
+import itertools
 import os
 import re
 
@@ -390,11 +391,16 @@ class Emote:
         # check if setting is on in this server
         # Let emotes happen in PMs always
         server = message.server
-        if message.author.bot:
+
+        # Filter unauthorized users, bots and empty messages
+        if not (self.bot.user_allowed(message) and message.content):
             return
-        for m in self.bot.command_prefix:
+
+        # Don't respond to commands
+        for m in self.bot.settings.get_prefixes(server):
             if message.content.startswith(m):
                 return
+
         if server is not None:
             if server.id not in self.servers:
                 # default off
@@ -410,17 +416,21 @@ class Emote:
                 dataIO.save_json("data/emote/servers.json", self.servers)
             if not self.servers[server.id]["status"]:
                 return
+
         msg = message.content.lower().split()
-        listed = list()
-        for m in msg:
-            for n in sorted(self.servers[server.id]["emotes"]):
-                if not n[0].isalnum():
-                    regex = re.compile(r"\B"+n+r"\b")
-                else:
-                    regex = re.compile(r"\b"+n+r"\b")
-                emote_find = regex.findall(m)
-                if emote_find:
-                    listed.append(self.servers[server.id]["emotes"][emote_find[0]])
+        listed = []
+        regexen = []
+        for n in sorted(self.servers[server.id]["emotes"]):
+            if not n[0].isalnum():
+                regexen.append(re.compile(r"\B"+n+r"\b"))
+            else:
+                regexen.append(re.compile(r"\b"+n+r"\b"))
+
+        for w, r in itertools.product(msg, regexen):
+            match = r.search(w)
+            if match:
+                listed.append(self.servers[server.id]["emotes"][match.group(0)])
+
         pnglisted = list(filter(lambda n: not n.endswith('.gif'), listed))
         giflisted = list(filter(lambda n: n.endswith('.gif'), listed))
         if pnglisted and len(pnglisted) > 1:
