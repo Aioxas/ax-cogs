@@ -2,7 +2,7 @@
 
 A repo with a bunch of search and retrieval cogs made for Red Bot.
 
-If you are asking yourself, "What is Red Bot?" or "Who the heck is Red Bot?", then follow this link: [Red Bot](https://github.com/Twentysix26/Red-DiscordBot)
+If you are asking yourself, "What is Red?" or "Who the heck is Red?", then follow this link: [Red - DiscordBot](https://github.com/Twentysix26/Red-DiscordBot)
 
 ##Contact Me
 
