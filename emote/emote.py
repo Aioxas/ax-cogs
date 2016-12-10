@@ -1,6 +1,6 @@
 from discord.ext import commands
-from .utils.dataIO import dataIO
 from .utils import checks
+from .utils.dataIO import dataIO
 import aiohttp
 import itertools
 import os
@@ -21,14 +21,22 @@ class Emote:
 
     def __init__(self, bot):
         self.bot = bot
-        self.servers = dataIO.load_json('data/emote/servers.json')
+        self.data_path = "data/emote/servers.json"
+        self.servers = dataIO.load_json(self.data_path)
         self.emote = self.servers["emote"]
+
     # doesn't make sense to use this command in a pm, because pms aren't in servers
     # mod_or_permissions needs something in it otherwise it's mod or True which is always True
 
-    @commands.command(pass_context=True, no_pm=True)
+    @commands.group(pass_context=True)
+    async def emotes(self, ctx):
+        """Emote settings"""
+        if ctx.invoked_subcommand is None:
+            await send_cmd_help(ctx)
+
+    @emotes.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
-    async def set_emotes(self, ctx):
+    async def set(self, ctx):
         """Enables/Disables emotes for this server"""
         # default off.
         server = ctx.message.server
@@ -38,19 +46,19 @@ class Emote:
             self.servers[server.id]["status"] = not self.servers[server.id]["status"]
         if "emotes" not in self.servers[server.id]:
             self.servers[server.id]["emotes"] = dict()
-        dataIO.save_json('data/emote/servers.json', self.servers)
+        dataIO.save_json(self.data_path, self.servers)
         # for a toggle, settings should save here in case bot fails to send message
         if self.servers[server.id]["status"]:
-            await self.bot.say('emotes on. Please turn this off in the Red - DiscordBot server.'
+            await self.bot.say('Emotes on. Please turn this off in the Red - DiscordBot server.'
                                ' This is only an example cog.')
         else:
-            await self.bot.say('emotes off.')
+            await self.bot.say('Emotes off.')
 
-    @commands.command(pass_context=True, no_pm=True)
+    @emotes.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
-    async def add_emote(self, ctx, name, url):
+    async def add(self, ctx, name, url):
         """Allows you to add emotes to the emote list
-        [p]add_emote pan http://i.imgur.com/FFRjKBW.gifv"""
+        [p]emotes add pan http://i.imgur.com/FFRjKBW.gifv"""
         server = ctx.message.server
         name = name.lower()
         option = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 '
@@ -60,7 +68,7 @@ class Emote:
             self.servers[server.id] = dict({"status": False})
             if "emotes" not in self.servers[server.id]:
                 self.servers[server.id]["emotes"] = dict()
-            dataIO.save_json("data/emote/servers.json", self.servers)
+            dataIO.save_json(self.data_path, self.servers)
         if not url.endswith((".gif", ".gifv", ".png")):
             await self.bot.say("Links ending in .gif, .png, and .gifv are the only ones accepted."
                                "Please try again with a valid emote link, thanks.")
@@ -79,17 +87,17 @@ class Emote:
                 await self.bot.say("Adding {} to the list.".format(name))
                 self.servers[server.id]["emotes"][name] = "{}.{}".format(name, url[-3:])
                 self.servers[server.id]["emotes"]
-            dataIO.save_json("data/emote/servers.json", self.servers)
+            dataIO.save_json(self.data_path, self.servers)
             await self.bot.say("{} has been added to the list".format(name))
         except Exception as e:
             print(e)
             await self.bot.say("It seems your url is not valid,"
                                " please make sure you are not typing names with spaces as they are and then the url."
-                               " If so, do [p]add_emote name_with_spaces url")
+                               " If so, do [p]emotes add name_with_spaces url")
 
-    @commands.command(pass_context=True, no_pm=True)
+    @emotes.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
-    async def del_emote(self, ctx, name):
+    async def remove(self, ctx, name):
         """Allows you to remove emotes from the emotes list"""
         server = ctx.message.server
         name = name.lower()
@@ -99,25 +107,25 @@ class Emote:
                 self.servers[server.id] = dict({"status": False})
                 if "emotes" not in self.servers[server.id]:
                     self.servers[server.id]["emotes"] = dict()
-                dataIO.save_json("data/emote/servers.json", self.servers)
+                dataIO.save_json(self.data_path, self.servers)
             if name in self.servers[server.id]["emotes"]:
                 os.remove(self.emote+self.servers[server.id]["emotes"][name])
                 del self.servers[server.id]["emotes"][name]
             else:
                 await self.bot.say("{} is not a valid name, please make sure the name of the"
                                    " emote that you want to remove actually exists."
-                                   " Use [p]list_emotes to verify it's there.".format(name))
+                                   " Use [p]emotes list to verify it's there.".format(name))
                 return
-            dataIO.save_json("data/emote/servers.json", self.servers)
+            dataIO.save_json(self.data_path, self.servers)
             await self.bot.say("{} has been removed from the list".format(name))
         except FileNotFoundError:
             await self.bot.say("For some unknown reason, your emote is not available in the default directory"
                                ", that is, data/emote/images. This means that it can't be removed. "
                                "But it has been successfully removed from the emotes list.")
 
-    @commands.command(pass_context=True, no_pm=True)
+    @emotes.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
-    async def edit_emote(self, ctx, name, newname):
+    async def edit(self, ctx, name, newname):
         """Allows you to edit the keyword that triggers the emote
          from the emotes list"""
         server = ctx.message.server
@@ -127,7 +135,7 @@ class Emote:
             self.servers[server.id] = dict({"status": False})
             if "emotes" not in self.servers[server.id]:
                 self.servers[server.id]["emotes"] = dict()
-            dataIO.save_json("data/emote/servers.json", self.servers)
+            dataIO.save_json(self.data_path, self.servers)
         if newname in self.servers[server.id]["emotes"]:
             await self.bot.say("This keyword already exists, please use another keyword.")
             return
@@ -141,21 +149,21 @@ class Emote:
             else:
                 await self.bot.say("{} is not a valid name, please make sure the name of the"
                                    " emote that you want to edit exists"
-                                   " Use [p]list_emotes to verify it's there.".format(name))
+                                   " Use [p]emotes list to verify it's there.".format(name))
                 return
-            dataIO.save_json("data/emote/servers.json", self.servers)
+            dataIO.save_json(self.data_path, self.servers)
             await self.bot.say("{} in the emotes list has been renamed to {}".format(name, newname))
         except FileNotFoundError:
             await self.bot.say("For some unknown reason, your emote is not available in the default directory,"
                                " that is, data/emote/images. This means that it can't be edited."
                                " But it has been successfully edited in the emotes list.")
 
-    @commands.command(pass_context=True, no_pm=True)
+    @emotes.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
-    async def list_emotes(self, ctx, style):
+    async def list(self, ctx, style):
         """Shows you the emotes list.
-        Supported styles: [p]list_emotes 10 (shows 10 emotes per page)
-        and [p]list_emotes a (shows all the emotes beginning with a)"""
+        Supported styles: [p]emotes list 10 (shows 10 emotes per page)
+        and [p]emotes list a (shows all the emotes beginning with a)"""
         server = ctx.message.server
         style = style.lower()
         istyles = sorted(self.servers[server.id]["emotes"])
@@ -164,10 +172,10 @@ class Emote:
             self.servers[server.id] = dict({"status": False})
             if "emotes" not in self.servers[server.id]:
                 self.servers[server.id]["emotes"] = dict()
-            dataIO.save_json("data/emote/servers.json", self.servers)
+            dataIO.save_json(self.data_path, self.servers)
         if not istyles:
             await self.bot.say("Your emotes list is empty."
-                               " Please add a few emotes using the [p]add_emote function.")
+                               " Please add a few emotes using the [p]emote add function.")
             return
         if style.isdigit():
             if style == "0":
@@ -183,7 +191,7 @@ class Emote:
             style = 10
         else:
             await self.bot.say("Your list style is not correct, please use one"
-                               " of the accepted styles, either do [p]list_emotes A or [p]list_emotes 10")
+                               " of the accepted styles, either do [p]emotes list A or [p]emotes list 10")
             return
         s = "\n"
         count = style
@@ -212,17 +220,17 @@ class Emote:
             else:
                 return
 
-    @commands.command(pass_context=True, no_pm=True)
+    @emotes.command(pass_context=True, no_pm=True)
     @checks.mod_or_permissions(manage_roles=True)
-    async def compare_emotes(self, ctx, style, alls: str=None):
+    async def compare(self, ctx, style, alls: str=None):
         """Allows you to compare keywords to files
         or files to keywords and then make sure that
         they all coincide.
         Keywords to Files name: K2F
         Files to Keywords name: F2K
-        [p]compare_emotes K2F
-        [p]compare_emotes K2F all
-        [p]compare_emotes F2K all"""
+        [p]emotes compare K2F
+        [p]emotes compare K2F all
+        [p]emotes compare F2K all"""
         server = ctx.message.server
         style = style.lower()
         if alls is not None:
@@ -233,7 +241,7 @@ class Emote:
             self.servers[server.id] = dict({"status": False})
             if "emotes" not in self.servers[server.id]:
                 self.servers[server.id]["emotes"] = dict()
-            dataIO.save_json("data/emote/servers.json", self.servers)
+            dataIO.save_json(self.data_path, self.servers)
         if style not in styleset:
             return
         msg = "Keywords deleted due to missing files in the emotes list:\n"
@@ -264,7 +272,7 @@ class Emote:
                     for m in missing:
                         if m in self.servers[servs]["emotes"]:
                             del self.servers[servs]["emotes"][m]
-                    dataIO.save_json("data/emote/servers.json", self.servers)
+                    dataIO.save_json(self.data_path, self.servers)
                     s = "\n"
                     style = 10
                     counter = len(missing) + 10
@@ -307,7 +315,7 @@ class Emote:
                 for m in missing:
                     if m in self.servers[server.id]["emotes"]:
                         del self.servers[server.id]["emotes"][m]
-                dataIO.save_json("data/emote/servers.json", self.servers)
+                dataIO.save_json(self.data_path, self.servers)
                 s = "\n"
                 style = 10
                 counter = len(missing) + 10
@@ -366,7 +374,7 @@ class Emote:
                             return
                         else:
                             continue
-                    dataIO.save_json("data/emote/servers.json", self.servers)
+                    dataIO.save_json(self.data_path, self.servers)
                     await self.bot.say(str(count) + " Keywords have been successfully added to the image list in "
                                        + servs)
             else:
@@ -384,10 +392,10 @@ class Emote:
                 if count == 0:
                     await self.bot.say("All files and keywords are accounted for")
                     return
-                dataIO.save_json("data/emote/servers.json", self.servers)
+                dataIO.save_json(self.data_path, self.servers)
                 await self.bot.say(str(count) + " Keywords have been successfully added to the image list")
 
-    async def check_emote(self, message):
+    async def check_emotes(self, message):
         # check if setting is on in this server
         # Let emotes happen in PMs always
         server = message.server
@@ -407,13 +415,13 @@ class Emote:
                 self.servers[server.id] = dict({"status": False})
                 if "emotes" not in self.servers[server.id]:
                     self.servers[server.id]["emotes"] = dict()
-                dataIO.save_json("data/emote/servers.json", self.servers)
+                dataIO.save_json(self.data_path, self.servers)
             # emotes is off, so ignore
             if "status" not in self.servers[server.id]:
                 self.servers[server.id] = dict({"status": False})
                 if "emotes" not in self.servers[server.id]:
                     self.servers[server.id]["emotes"] = dict()
-                dataIO.save_json("data/emote/servers.json", self.servers)
+                dataIO.save_json(self.data_path, self.servers)
             if not self.servers[server.id]["status"]:
                 return
 
@@ -483,7 +491,7 @@ def setup(bot):
         check_files()
         n = Emote(bot)
         # add an on_message listener
-        bot.add_listener(n.check_emote, 'on_message')
+        bot.add_listener(n.check_emotes, 'on_message')
         bot.add_cog(n)
     else:
         raise RuntimeError("You need to run 'pip3 install Pillow'")
