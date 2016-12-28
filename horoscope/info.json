@@ -3,6 +3,6 @@
     "INSTALL_MSG" : "Thanks for installing my cog. \n[p]help Horoscope should be enough. If not [p]help horo, [p]help tsujiura should.",
     "NAME" : "horoscope",
     "SHORT" : "Zodiac and Chinese Horoscope and Fortune Cookie cog",
-    "REQUIREMENTS" : ["PIL"],
+    "REQUIREMENTS" : ["Pillow"],
     "DESCRIPTION" : "You can check your love and daily horoscope, as well as chinese horoscope. Random fortune cookie included."
 }
