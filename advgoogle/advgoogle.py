@@ -3,6 +3,7 @@ from random import choice
 import aiohttp
 import re
 import urllib
+from cogs.utils.chat_formatting import box
 
 
 class AdvancedGoogle:
@@ -31,9 +32,10 @@ class AdvancedGoogle:
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'
         }
         regex = [
-            ",\"ou\":\"([^`]*?)\"",
-            "<h3 class=\"r\"><a href=\"\/url\?url=([^`]*?)&amp;",
-            "<h3 class=\"r\"><a href=\"([^`]*?)\""
+            re.compile(",\"ou\":\"([^`]*?)\""),
+            re.compile("<h3 class=\"r\"><a href=\"\/url\?url=([^`]*?)&amp;"),
+            re.compile("<h3 class=\"r\"><a href=\"([^`]*?)\""),
+            re.compile("\/url?url=")
             ]
 
         # Start of Image
@@ -43,7 +45,7 @@ class AdvancedGoogle:
             if search_valid == "image":
                 await self.bot.say("Please actually search something")
             else:
-                uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
+                uri = "https://www.google.com/search?tbm=isch&tbs=isz:m&q="
                 quary = str(ctx.message.content
                             [len(ctx.prefix+ctx.command.name)+7:].lower())
                 encode = urllib.parse.quote_plus(quary, encoding='utf-8',
@@ -53,7 +55,7 @@ class AdvancedGoogle:
                 async with aiohttp.get(uir, headers=option) as resp:
                     test = await resp.content.read()
                     unicoded = test.decode("unicode_escape")
-                    query_find = re.findall(regex[0], unicoded)
+                    query_find = regex[0].findall(unicoded)
                     try:
                         url = query_find[0]
                         await self.bot.say(url)
@@ -67,7 +69,7 @@ class AdvancedGoogle:
             if search_valid == "image":
                 await self.bot.say("Please actually search something")
             else:
-                uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
+                uri = "https://www.google.com/search?tbm=isch&tbs=isz:m&q="
                 quary = str(ctx.message.content
                             [len(ctx.prefix+ctx.command.name)+7:].lower())
                 encode = urllib.parse.quote_plus(quary, encoding='utf-8',
@@ -76,7 +78,7 @@ class AdvancedGoogle:
                 async with aiohttp.get(uir, headers=option) as resp:
                     test = await resp.content.read()
                     unicoded = test.decode("unicode_escape")
-                    query_find = re.findall(regex[0], unicoded)
+                    query_find = regex[0].findall(unicoded)
                     try:
                         url = choice(query_find)
                         await self.bot.say(url)
@@ -100,7 +102,7 @@ class AdvancedGoogle:
             # End of Maps
         # Start of generic search
         else:
-            uri = "https://www.google.com/search?hl=en&q="
+            uri = "https://www.google.com/search?q="
             quary = str(ctx.message.content
                         [len(ctx.prefix+ctx.command.name)+1:])
             encode = urllib.parse.quote_plus(quary, encoding='utf-8',
@@ -108,34 +110,80 @@ class AdvancedGoogle:
             uir = uri+encode
             async with aiohttp.get(uir, headers=option) as resp:
                 test = str(await resp.content.read())
-                query_find = re.findall(regex[1], test)
+                query_find = regex[1].findall(test)
                 if not query_find:
-                    query_find = re.findall(regex[2], test)
+                    query_find = regex[2].findall(test)
                     try:
-                        if re.search("\/url?url=", query_find[0]):
-                            query_find = query_find[0]
-                            m = re.search("\/url?url=", query_find)
-                            query_find = query_find[:m.start()]
-                            + query_find[m.end():]
-                            decode = self.unescape(query_find)
-                            await self.bot.say("Here is your link: {}"
-                                               .format(decode))
+                        for r in query_find[:6]:
+                            if regex[3].search(r):
+                                m = regex[3].search(r)
+                                r = r[:m.start()]
+                                + r[m.end():]
+                                r = self.unescape(r)
+                            else:
+                                r = self.unescape(r)
+                        for i in range(len(query_find[:6])):
+                            query_find[i] = "{}. <".format(i+1) + query_find[i] + ">"
+                        await self.bot.say("Please type a number from the following list:\n"
+                                           + box("{}".format("\n".join(query_find[:6]))))
+                        answer = await self.bot.wait_for_message(timeout=15,
+                                                                 author=ctx.message.author)
+                        if answer is None:
+                            query_find = query_find[0].split()[1]
+                        elif answer.content.lower().strip().isdigit():
+                            answer = answer.content.lower().strip()
+                            answer = int(answer)
+                            query_find = query_find[answer-1].split()[1]
                         else:
-                            decode = self.unescape(query_find[0])
-                            await self.bot.say("Here is your link: {}"
-                                               .format(decode))
+                            query_find = query_find[0].split()[1]
+                        await self.bot.say("Here's your link: {}".format(query_find))
                     except IndexError:
                         await self.bot.say("Your search yielded no results.")
-                elif re.search("\/url?url=", query_find[0]):
-                    query_find = query_find[0]
-                    m = re.search("\/url?url=", query_find)
-                    query_find = query_find[:m.start()] + query_find[m.end():]
-                    decode = self.unescape(query_find)
-                    await self.bot.say("Here is your link: {}".format(decode))
+                elif regex[3].search(query_find[0]):
+                        for r in query_find[:6]:
+                            if regex[3].search(r):
+                                m = regex[3].search(r)
+                                r = r[:m.start()]
+                                + r[m.end():]
+                                r = self.unescape(r)
+                            else:
+                                r = self.unescape(r)
+                        for i in range(len(query_find[:6])):
+                            query_find[i] = "{}. <".format(i+1) + query_find[i] + ">"
+                        await self.bot.say("Please type a number from the following list:\n"
+                                           + box("{}".format("\n".join(query_find[:6]))))
+                        answer = await self.bot.wait_for_message(timeout=15,
+                                                                 author=ctx.message.author)
+                        if answer is None:
+                            query_find = query_find[0].split()[1]
+                        elif answer.content.lower().strip().isdigit():
+                            answer = answer.content.lower().strip()
+                            answer = int(answer)
+                            query_find = query_find[answer-1].split()[1]
+                        else:
+                            query_find = query_find[0].split()[1]
+                        await self.bot.say("Here's your link: {}".format(query_find))
+
                 else:
-                    query_find = query_find[0]
-                    decode = self.unescape(query_find)
-                    await self.bot.say("Here is your link: {} ".format(decode))
+                    for r in query_find[:6]:
+                        r = self.unescape(r)
+                        r = "<"+r+">"
+                    for i in range(len(query_find[:6])):
+                        query_find[i] = "{}. <".format(i+1) + query_find[i] + ">"
+                    await self.bot.say("Please type a number from the following list:\n"
+                                       + box("{}".format("\n".join(query_find[:6]))))
+                    answer = await self.bot.wait_for_message(timeout=15,
+                                                             author=ctx.message.author)
+                    if answer is None:
+                        query_find = query_find[0].split()[1]
+                    elif answer.content.lower().strip().isdigit():
+                        answer = answer.content.lower().strip()
+                        answer = int(answer)
+                        query_find = query_find[answer-1].split()[1]
+                    else:
+                        query_find = query_find[0].split()[1]
+                    await self.bot.say("Here's your link: {}".format(query_find))
+
             # End of generic search
 
     def unescape(self, msg):
