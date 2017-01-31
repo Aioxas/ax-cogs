@@ -3,5 +3,6 @@
     "INSTALL_MSG" : "Thanks for installing this cog.",
     "NAME" : "Strawpoll",
     "SHORT" : "Create a strawpoll",
+    "TAGS" : ["Utilities"],
     "DESCRIPTION" : "Create a strawpoll and change the various options allowed.\n[p]strawpoll and [p]strawpollset are the available options, please refer to their help commands."
 }
