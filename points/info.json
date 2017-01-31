@@ -4,6 +4,6 @@
     "NAME" : "Points",
     "SHORT" : "Keep a tally of points",
     "REQUIREMENTS" : ["Tabulate"],
-    "TAGS" : ["Utilities"]
+    "TAGS" : ["Utilities"],
     "DESCRIPTION" : "Easily keep track of how many points people have. [p]add_member and [p]help Points should help you"
 }
