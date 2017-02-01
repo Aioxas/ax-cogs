@@ -1,10 +1,12 @@
-from discord.ext import commands
-from .utils import checks
-from .utils.dataIO import dataIO
 import aiohttp
 import itertools
 import os
 import re
+
+from __main__ import send_cmd_help
+from discord.ext import commands
+from .utils import checks
+from .utils.dataIO import dataIO
 
 try:
     from PIL import Image
