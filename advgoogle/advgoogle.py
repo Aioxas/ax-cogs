@@ -3,7 +3,6 @@ from random import choice
 import aiohttp
 import re
 import urllib
-from cogs.utils.chat_formatting import box
 
 
 class AdvancedGoogle:
@@ -45,7 +44,7 @@ class AdvancedGoogle:
             if search_valid == "image":
                 await self.bot.say("Please actually search something")
             else:
-                uri = "https://www.google.com/search?tbm=isch&tbs=isz:m&q="
+                uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
                 quary = str(ctx.message.content
                             [len(ctx.prefix+ctx.command.name)+7:].lower())
                 encode = urllib.parse.quote_plus(quary, encoding='utf-8',
@@ -69,7 +68,7 @@ class AdvancedGoogle:
             if search_valid == "image":
                 await self.bot.say("Please actually search something")
             else:
-                uri = "https://www.google.com/search?tbm=isch&tbs=isz:m&q="
+                uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
                 quary = str(ctx.message.content
                             [len(ctx.prefix+ctx.command.name)+7:].lower())
                 encode = urllib.parse.quote_plus(quary, encoding='utf-8',
@@ -102,7 +101,7 @@ class AdvancedGoogle:
             # End of Maps
         # Start of generic search
         else:
-            uri = "https://www.google.com/search?q="
+            uri = "https://www.google.com/search?hl=en&q="
             quary = str(ctx.message.content
                         [len(ctx.prefix+ctx.command.name)+1:])
             encode = urllib.parse.quote_plus(quary, encoding='utf-8',
@@ -124,19 +123,7 @@ class AdvancedGoogle:
                                 r = self.unescape(r)
                         for i in range(len(query_find[:6])):
                             query_find[i] = "{}. <".format(i+1) + query_find[i] + ">"
-                        await self.bot.say("Please type a number from the following list:\n"
-                                           + box("{}".format("\n".join(query_find[:6]))))
-                        answer = await self.bot.wait_for_message(timeout=15,
-                                                                 author=ctx.message.author)
-                        if answer is None:
-                            query_find = query_find[0].split()[1]
-                        elif answer.content.lower().strip().isdigit():
-                            answer = answer.content.lower().strip()
-                            answer = int(answer)
-                            query_find = query_find[answer-1].split()[1]
-                        else:
-                            query_find = query_find[0].split()[1]
-                        await self.bot.say("Here's your link: {}".format(query_find))
+                        await self.bot.say("Here are the first five results: {}".format("\n".join(query_find[:6])))
                     except IndexError:
                         await self.bot.say("Your search yielded no results.")
                 elif regex[3].search(query_find[0]):
@@ -150,39 +137,14 @@ class AdvancedGoogle:
                                 r = self.unescape(r)
                         for i in range(len(query_find[:6])):
                             query_find[i] = "{}. <".format(i+1) + query_find[i] + ">"
-                        await self.bot.say("Please type a number from the following list:\n"
-                                           + box("{}".format("\n".join(query_find[:6]))))
-                        answer = await self.bot.wait_for_message(timeout=15,
-                                                                 author=ctx.message.author)
-                        if answer is None:
-                            query_find = query_find[0].split()[1]
-                        elif answer.content.lower().strip().isdigit():
-                            answer = answer.content.lower().strip()
-                            answer = int(answer)
-                            query_find = query_find[answer-1].split()[1]
-                        else:
-                            query_find = query_find[0].split()[1]
-                        await self.bot.say("Here's your link: {}".format(query_find))
+                        await self.bot.say("Here are the first five results: {}".format("\n".join(query_find[:6])))
 
                 else:
                     for r in query_find[:6]:
                         r = self.unescape(r)
-                        r = "<"+r+">"
                     for i in range(len(query_find[:6])):
-                        query_find[i] = "{}. <".format(i+1) + query_find[i] + ">"
-                    await self.bot.say("Please type a number from the following list:\n"
-                                       + box("{}".format("\n".join(query_find[:6]))))
-                    answer = await self.bot.wait_for_message(timeout=15,
-                                                             author=ctx.message.author)
-                    if answer is None:
-                        query_find = query_find[0].split()[1]
-                    elif answer.content.lower().strip().isdigit():
-                        answer = answer.content.lower().strip()
-                        answer = int(answer)
-                        query_find = query_find[answer-1].split()[1]
-                    else:
-                        query_find = query_find[0].split()[1]
-                    await self.bot.say("Here's your link: {}".format(query_find))
+                            query_find[i] = "{}. <".format(i+1) + query_find[i] + ">"
+                    await self.bot.say("Here are the first five results: {}".format("\n".join(query_find[:6])))
 
             # End of generic search
 
