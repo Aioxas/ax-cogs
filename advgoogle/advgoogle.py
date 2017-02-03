@@ -36,58 +36,24 @@ class AdvancedGoogle:
             re.compile("<h3 class=\"r\"><a href=\"([^`]*?)\""),
             re.compile("\/url?url=")
             ]
-
+        search_valid = str(ctx.message.content
+                           [len(ctx.prefix+ctx.command.name)+1:].lower())
         # Start of Image
-        if search_type[0] == "image":
-            search_valid = str(ctx.message.content
-                               [len(ctx.prefix+ctx.command.name)+1:].lower())
-            if search_valid == "image":
+        if search_type[0] == "image" or search_type[0] == "images":
+            if search_valid == "image" or search_valid == "images":
                 await self.bot.say("Please actually search something")
             else:
-                uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
-                quary = str(ctx.message.content
-                            [len(ctx.prefix+ctx.command.name)+7:].lower())
-                encode = urllib.parse.quote_plus(quary, encoding='utf-8',
-                                                 errors='replace')
-                uir = uri+encode
-
-                async with aiohttp.get(uir, headers=option) as resp:
-                    test = await resp.content.read()
-                    unicoded = test.decode("unicode_escape")
-                    query_find = regex[0].findall(unicoded)
-                    try:
-                        url = query_find[0]
-                        await self.bot.say(url)
-                    except IndexError:
-                        await self.bot.say("Your search yielded no results.")
+                if search_type[0] == "image":
+                    url, error = await self.images(ctx, regex, option)
+                elif search_type[0] == "images":
+                    url, error = await self.images(ctx, regex, option, images=True)
+                if url and not error:
+                    await self.bot.say(url)
+                elif error:
+                    await self.bot.say("Your search yielded no results.")
             # End of Image
-        # Start of Image random
-        elif search_type[0] == "images":
-            search_valid = str(ctx.message.content
-                               [len(ctx.prefix+ctx.command.name)+1:].lower())
-            if search_valid == "image":
-                await self.bot.say("Please actually search something")
-            else:
-                uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
-                quary = str(ctx.message.content
-                            [len(ctx.prefix+ctx.command.name)+7:].lower())
-                encode = urllib.parse.quote_plus(quary, encoding='utf-8',
-                                                 errors='replace')
-                uir = uri+encode
-                async with aiohttp.get(uir, headers=option) as resp:
-                    test = await resp.content.read()
-                    unicoded = test.decode("unicode_escape")
-                    query_find = regex[0].findall(unicoded)
-                    try:
-                        url = choice(query_find)
-                        await self.bot.say(url)
-                    except IndexError:
-                        await self.bot.say("Your search yielded no results.")
-            # End of Image random
         # Start of Maps
         elif search_type[0] == "maps":
-            search_valid = str(ctx.message.content
-                               [len(ctx.prefix+ctx.command.name)+1:].lower())
             if search_valid == "maps":
                 await self.bot.say("Please actually search something")
             else:
@@ -113,45 +79,68 @@ class AdvancedGoogle:
                 if not query_find:
                     query_find = regex[2].findall(test)
                     try:
-                        for r in query_find[:6]:
-                            if regex[3].search(r):
-                                m = regex[3].search(r)
-                                r = r[:m.start()]
-                                + r[m.end():]
-                                r = self.unescape(r)
-                            else:
-                                r = self.unescape(r)
-                        for i in range(len(query_find[:6])):
-                            query_find[i] = "{}. <".format(i+1) + query_find[i] + ">"
-                        await self.bot.say("Here are the first five results: {}".format("\n".join(query_find[:6])))
+                        query_find = self.parsed(query_find, regex)
+                        await self.bot.say("Here are the first five results:\n{}".format("\n".join(query_find)))
                     except IndexError:
                         await self.bot.say("Your search yielded no results.")
                 elif regex[3].search(query_find[0]):
-                        for r in query_find[:6]:
-                            if regex[3].search(r):
-                                m = regex[3].search(r)
-                                r = r[:m.start()]
-                                + r[m.end():]
-                                r = self.unescape(r)
-                            else:
-                                r = self.unescape(r)
-                        for i in range(len(query_find[:6])):
-                            query_find[i] = "{}. <".format(i+1) + query_find[i] + ">"
-                        await self.bot.say("Here are the first five results: {}".format("\n".join(query_find[:6])))
-
+                        query_find = self.parsed(query_find, regex)
+                        await self.bot.say("Here are the first five results:\n{}".format("\n".join(query_find)))
                 else:
-                    for r in query_find[:6]:
-                        r = self.unescape(r)
-                    for i in range(len(query_find[:6])):
-                            query_find[i] = "{}. <".format(i+1) + query_find[i] + ">"
-                    await self.bot.say("Here are the first five results: {}".format("\n".join(query_find[:6])))
+                    query_find = self.parsed(query_find, regex, found=False)
+                    await self.bot.say("Here are the first five results:\n{}".format("\n".join(query_find)))
 
             # End of generic search
+
+    async def images(self, ctx, regex, option, images: bool=False):
+        uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
+        num = 7
+        if images:
+            num = 8
+        quary = str(ctx.message.content
+                    [len(ctx.prefix+ctx.command.name)+num:].lower())
+        print(quary)
+        encode = urllib.parse.quote_plus(quary, encoding='utf-8',
+                                         errors='replace')
+        uir = uri+encode
+        url = None
+        async with aiohttp.get(uir, headers=option) as resp:
+            test = await resp.content.read()
+            unicoded = test.decode("unicode_escape")
+            query_find = regex[0].findall(unicoded)
+            try:
+                if images:
+                    url = choice(query_find)
+                elif not images:
+                    url = query_find[0]
+                error = False
+            except IndexError:
+                error = True
+        return url, error
+
+    def parsed(self, find, regex, found: bool=True):
+        find = find[:5]
+        if found:
+            for r in find:
+                if regex[3].search(r):
+                    m = regex[3].search(r)
+                    r = r[:m.start()]
+                    + r[m.end():]
+                    r = self.unescape(r)
+                else:
+                    r = self.unescape(r)
+            for i in range(len(find)):
+                find[i] = "{}. <".format(i+1) + find[i] + ">"
+        elif not found:
+            for r in find:
+                r = self.unescape(r)
+            for i in range(len(find)):
+                    find[i] = "{}. <".format(i+1) + find[i] + ">"
+        return find
 
     def unescape(self, msg):
         regex = ["<br \/>", "(?:\\\\[rn])", "(?:\\\\['])", "%25", "\(", "\)"]
         subs = ["\n", "", "'", "%", "%28", "%29"]
-
         for i in range(len(regex)):
             sub = re.sub(regex[i], subs[i], msg)
             msg = sub
