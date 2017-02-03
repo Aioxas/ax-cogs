@@ -80,7 +80,7 @@ class AdvancedGoogle:
                     query_find = regex[2].findall(test)
                     try:
                         query_find = self.parsed(query_find, regex)
-                        await self.bot.say("Here are the first five results:\n{}".format("\n".join(query_find)))
+                        await self.bot.say("Here is your result: {}".format("\n".join(query_find)))
                     except IndexError:
                         await self.bot.say("Your search yielded no results.")
                 elif regex[3].search(query_find[0]):
@@ -130,7 +130,10 @@ class AdvancedGoogle:
                 else:
                     r = self.unescape(r)
             for i in range(len(find)):
-                find[i] = "{}. <".format(i+1) + find[i] + ">"
+                if i == 0:
+                    find[i] = "{}. ".format(i+1) + find[i] + "\n\nYou might also want to check these out:"
+                else:
+                    find[i] = "{}. <".format(i+1) + find[i] + ">"
         elif not found:
             for r in find:
                 r = self.unescape(r)
