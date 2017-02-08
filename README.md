@@ -1,6 +1,6 @@
 # Ax-Cogs
 
-A repo with a bunch of search and retrieval cogs made for Red Bot.
+A repo with search, retrieval, and random utility cogs made for Red Bot.
 
 If you are asking yourself, "What is Red?" or "Who the heck is Red?", then follow this link: [Red - DiscordBot](https://github.com/Twentysix26/Red-DiscordBot)
 
