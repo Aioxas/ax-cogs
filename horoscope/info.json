@@ -4,6 +4,6 @@
     "NAME" : "horoscope",
     "SHORT" : "Zodiac and Chinese Horoscope and Fortune Cookie cog",
     "REQUIREMENTS" : ["Pillow"],
-    "TAGS" : ["Utilites", "Fun"]
+    "TAGS" : ["Utilites", "Fun"],
     "DESCRIPTION" : "You can check your love and daily horoscope, as well as chinese horoscope. Random fortune cookie included."
 }
