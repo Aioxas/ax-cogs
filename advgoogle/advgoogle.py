@@ -10,7 +10,7 @@ class AdvancedGoogle:
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="advgoogle", pass_context=True, no_pm=True)
+    @commands.command(name="advgoogle", pass_context=True)
     @commands.cooldown(5, 60, commands.BucketType.user)
     async def _advgoogle(self, ctx, text):
         """Its google, you search with it.
