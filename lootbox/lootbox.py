@@ -1,9 +1,9 @@
-import os
 import numpy
+import os
 
+from __main__ import send_cmd_help
 from .utils import checks
 from .utils.dataIO import dataIO
-from __main__ import send_cmd_help
 from discord.ext import commands
 
 
@@ -29,6 +29,7 @@ class Lootbox:
         name = name.lower()
         server = ctx.message.server
         counter = 0
+        neg = False
         if server.id not in self.db:
             self.db[server.id] = {}
         if name not in self.db[server.id]:
@@ -39,13 +40,23 @@ class Lootbox:
         elif "," in content:
             content = content.split(",")
         if multi and type(content) is not list:
+            if multi < 0:
+                neg = True
+                multi = abs(multi)
             content = [content.lower()] * multi
         else:
+            if multi < 0:
+                neg = True
+                multi = abs(multi)
             content = content * multi
+        print(content)
         for x in content:
             x = x.lower()
             if x in self.db[server.id][name]["content"]:
-                self.db[server.id][name]["content"][x] += 1
+                if neg:
+                    self.db[server.id][name]["content"][x] -= 1
+                else:
+                    self.db[server.id][name]["content"][x] += 1
             else:
                 counter += 1
                 continue
@@ -120,6 +131,66 @@ class Lootbox:
         self.db[server.id][name]["output"] = output
         dataIO.save_json("data/lootbox/servers.json", self.db)
         await self.bot.say("{} box's output has changed to {}".format(name, output))
+
+    @edit.command(pass_context=True)
+    async def append(self, ctx, name: str, items: str):
+        """Allows adding new items to an already created lootbox
+           [p]box edit append "item_1 1, item_2 4, item_3 5"
+           Names are fixed when they are added."""
+        server = ctx.message.server
+        items = items.split(", ")
+        itemis = dict()
+        for item in items:
+            item, value = item.split(" ")
+            item = item.replace("_", " ").lower()
+            itemis[item] = value
+        if server.id not in self.db:
+            self.db[server.id] = {}
+        if name not in self.db[server.id]:
+            await self.bot.say("Box doesn't exist, please make sure the spelling is correct and"
+                               " that it's found in [p]box list")
+            return
+        items = list(itemis.keys())
+        for item in items:
+            value = itemis[item]
+            if item in self.db[server.id][name]["content"]:
+                items = [item for item in items if item not in self.db[server.id][name]["content"]]
+            else:
+                self.db[server.id][name]["content"][item] = value
+        dataIO.save_json("data/lootbox/servers.json", self.db)
+        if items:
+            await self.bot.say("{} box has added the following items:\n{}".format(name, "\n".join(items)))
+        else:
+            await self.bot.say("{} box hasn't added any new items".format(name))
+
+    @edit.command(pass_context=True)
+    async def remove(self, ctx, name: str, items: str):
+        """Allows removing items to an already created lootbox
+           [p]box edit remove "item_1 1, item_2 4, item_3 5"
+           Names are fixed when they are added."""
+        server = ctx.message.server
+        items = items.split(", ")
+        itemis = dict()
+        for item in items:
+            item, value = item.split(" ")
+            item = item.replace("_", " ").lower()
+            itemis[item] = value
+        if server.id not in self.db:
+            self.db[server.id] = {}
+        if name not in self.db[server.id]:
+            await self.bot.say("Box doesn't exist, please make sure the spelling is correct and"
+                               " that it's found in [p]box list")
+            return
+        for item in itemis:
+            value = itemis[item]
+            print(item)
+            if item in self.db[server.id][name]["content"]:
+                del itemis[item]
+                continue
+            else:
+                self.db[server.id][name]["content"][item] = value
+        dataIO.save_json("data/lootbox/servers.json", self.db)
+        await self.bot.say("{} box's has added the following items:\n{}".format(name, "\n".join(list(itemis))))
 
     @box.command(pass_context=True)
     async def info(self, ctx, name: str):
@@ -204,7 +275,10 @@ class Lootbox:
         if item:
             counter = numpy.random.randint(0, len(meow))
             meow = numpy.insert(meow, counter, item)
-        await self.bot.say("From {} box you got:\n{}".format(name, "\n".join(meow)))
+            msg = "From {} box you got:\n".format(name)
+            msg += "\n".join(meow)
+        for page in pagify(msg, delims=["\n"]):
+            await self.bot.say(page)
 
 
 def check_folders():
