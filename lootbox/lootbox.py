@@ -214,7 +214,7 @@ class Lootbox:
             box[x] = " {:.2%} chance of getting ".format(values[x]) + box[x]
             msg = "You can get the following items from the box:\n"
             msg += "\n".join(box)
-        for page in pagify(msg)
+        for page in pagify(msg):
             await self.bot.say(page)
 
     @box.command(pass_context=True)
