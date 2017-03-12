@@ -3,6 +3,7 @@ import os
 
 from __main__ import send_cmd_help
 from .utils import checks
+from .utils.chat_formatting import pagify
 from .utils.dataIO import dataIO
 from discord.ext import commands
 
@@ -211,7 +212,10 @@ class Lootbox:
         for x in range(len(values)):
             values[x] = values[x]/value
             box[x] = " {:.2%} chance of getting ".format(values[x]) + box[x]
-        await self.bot.say("You can get the following items from the box:\n{}".format("\n".join(box)))
+            msg = "You can get the following items from the box:\n"
+            msg += "\n".join(box)
+        for page in pagify(msg)
+            await self.bot.say(page)
 
     @box.command(pass_context=True)
     async def list(self, ctx):
