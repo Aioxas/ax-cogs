@@ -4,7 +4,7 @@
     "NAME" : "Testy",
     "SHORT" : "Test",
     "REQUIREMENTS" : [],
-    "HIDDEN" : True,
+    "HIDDEN" : "True",
     "TAGS" : ["weird"],
     "DESCRIPTION" : "None"
 }
