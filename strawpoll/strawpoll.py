@@ -27,12 +27,13 @@ class Strawpoll:
         else:
             normal = {"title": title, "options": options_list}
             request = dict(normal, **self.settings)
-            async with aiohttp.post('http://strawpoll.me/api/v2/polls', headers={'content-type': 'application/json'},
-                                    data=json.dumps(request)) as resp:
+            async with aiohttp.request('POST', 'http://strawpoll.me/api/v2/polls',
+                                       headers={'content-type': 'application/json'},
+                                       data=json.dumps(request)) as resp:
                 test = await resp.content.read()
                 test = json.loads(test.decode())
-                id = test["id"]
-                await self.bot.say("Here's your strawpoll link: http://strawpoll.me/{}".format(id))
+                sid = test["id"]
+                await self.bot.say("Here's your strawpoll link: http://strawpoll.me/{}".format(sid))
 
     @commands.group(name="strawpollset", pass_context=True, no_pm=True)
     async def strawpollset(self, ctx):

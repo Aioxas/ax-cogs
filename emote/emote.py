@@ -82,7 +82,7 @@ class Emote:
             url = url.replace(".gifv", ".gif")
         try:
             await self.bot.say("Downloading {}.".format(name))
-            async with aiohttp.get(url, headers=option) as r:
+            async with aiohttp.request("GET", url, headers=option) as r:
                 emote = await r.read()
                 with open(self.emote+"{}.{}".format(name, url[-3:]), 'wb') as f:
                     f.write(emote)
