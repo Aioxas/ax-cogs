@@ -1,13 +1,12 @@
 # Ax-Cogs
 
-A repo with search, retrieval, and random utility cogs made for Red Bot.
+A repo with search, retrieval, and utility cogs made for Red Bot.
 
 If you are asking yourself, "What is Red?" or "Who the heck is Red?", then follow this link: [Red - DiscordBot](https://github.com/Twentysix26/Red-DiscordBot)
 
 ##Contact Me
 
-If you need to get ahold of me, I am in the Red Discord Server most of the time. I might or might not be online, but if you see me around, say hi. :D
-You can PM me on @Axas#7680 if my cog caught your bot on fire. (Both literally and figuratively)
+If you need to get ahold of me, I am in the Red Discord Server most of the time. If you don't see me online, drop me a PM or open an issue here. You can PM me on @Axas#7680 if my cog caught your bot on fire. (Both literally and figuratively)
 
 ##Credits
 

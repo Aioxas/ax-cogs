@@ -65,7 +65,7 @@ class Horoscope:
                 uri = horo_types[type]
                 sign_num = str(chinese_signs.index(sign) + 1)
                 uir = uri + sign_num
-                async with aiohttp.get(uir, headers=option) as resp:
+                async with aiohttp.request("GET", uir, headers=option) as resp:
                     test = str(await resp.text())
                     msg = re.findall(regex[0], test)
                     msg = re.sub(subs, "", msg[0])
@@ -82,7 +82,7 @@ class Horoscope:
                     sign = signs[self.getzodiac_signs(Month, Day)]
                 uri = horo_types[type]
                 uir = uri + sign
-                async with aiohttp.get(uir, headers=option) as resp:
+                async with aiohttp.request("GET", uir, headers=option) as resp:
                     test = str(await resp.text())
                     msg = re.findall(regex[1], test)
                     msg = re.sub(subs, "", msg[0])
@@ -139,7 +139,7 @@ class Horoscope:
                  "3\)<\/strong><\/a>([^`]*?)<\/div>"]
         url = "http://www.fortunecookiemessage.com"
         await self.file_check()
-        async with aiohttp.get(url, headers={"encoding": "utf-8"}) as resp:
+        async with aiohttp.request("GET", url, headers={"encoding": "utf-8"}) as resp:
             test = str(await resp.text())
             fortune = re.findall(regex[0], test)
             fortest = re.match("<p>", fortune[0])
@@ -163,7 +163,7 @@ class Horoscope:
         option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)'
                   ' Gecko/20100101 Firefox/40.1'}
         if os.path.exists("data/horoscope/cookie.png"):
-            async with aiohttp.get(urls[0], headers=option) as resp:
+            async with aiohttp.request("GET", urls[0], headers=option) as resp:
                 test = await resp.read()
                 meow = False
                 with open("data/horoscope/cookie.png", "rb") as e:
@@ -173,12 +173,12 @@ class Horoscope:
                     with open("data/horoscope/cookie.png", "wb") as f:
                         f.write(test)
         elif not os.path.exists("data/horoscope/cookie.png"):
-            async with aiohttp.get(urls[0], headers=option) as resp:
+            async with aiohttp.request("GET", urls[0], headers=option) as resp:
                 test = await resp.read()
                 with open("data/horoscope/cookie.png", "wb") as f:
                     f.write(test)
         if not os.path.exists("data/horoscope/FortuneCookieNF.ttf"):
-            async with aiohttp.get(urls[1], headers=option) as resp:
+            async with aiohttp.request("GET", urls[1], headers=option) as resp:
                 test = await resp.read()
                 with open("data/horoscope/FortuneCookieNF.ttf", "wb") as f:
                     f.write(test)
@@ -195,7 +195,7 @@ class Horoscope:
             return
         if url is None:
             url = "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf"
-        async with aiohttp.get(url, headers=option) as resp:
+        async with aiohttp.request("GET", url, headers=option) as resp:
                 test = await resp.read()
                 with open("data/horoscope/FortuneCookieNF.ttf", "wb") as f:
                     f.write(test)

@@ -21,7 +21,7 @@ class Geico:
             num = 5
             await self.bot.reply("Heck naw brah. 5 is max. Any more and you get killed.")
         for i in range(num):
-            async with aiohttp.get('http://bash.org/?random') as resp:
+            async with aiohttp.request("GET", 'http://bash.org/?random') as resp:
                 test = str(await resp.text())
                 subs = re.findall(regex[0], test)
                 brsub = re.sub(regex[1], "", subs[0])
@@ -49,12 +49,12 @@ class Geico:
             quary = title.lower()
             encode = urllib.parse.quote_plus(quary, encoding='utf-8', errors='replace')
             uir = uri + encode
-            async with aiohttp.get(uir, headers=option) as resp:
+            async with aiohttp.request("GET", uir, headers=option) as resp:
                 test = str(await resp.text())
                 author_find = re.findall(regex[0], test)
                 author_url = 'http://www.brainyquote.com/quotes/authors/' + author_find[0]
                 for i in range(number):
-                    async with aiohttp.get(author_url) as resp:
+                    async with aiohttp.request("GET", author_url) as resp:
                         test = str(await resp.text())
                         quote_find = re.findall(regex[1], test)
                         random_quote = choice(quote_find)
