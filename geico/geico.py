@@ -35,8 +35,7 @@ class Geico:
         Examples:
         [p]quotes Morgan Freeman; 5
         [p]quotes Margaret Thatcher; 2"""
-        regex = [" <a href=\"\/quotes\/authors\/([^`]*?).html\">", "title=\"view quote\">([^`]*?)<\/a>",
-                 "<h1 class=\"pull-left quoteListH1\" style=\"padding-right:20px\">([^`]*?) Quotes", "&#39;"]
+        regex = [" <a href=\"\/quotes\/authors\/([^`]*?).html\">", "title=\"view quote\">([^`]*?)<\/a>"]
         option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
         try:
             author = author.split('; ')
@@ -58,13 +57,13 @@ class Geico:
                         test = str(await resp.text())
                         quote_find = re.findall(regex[1], test)
                         random_quote = choice(quote_find)
-                        name_find = re.findall(regex[2], test)
-                        while random_quote == name_find[0]:
+                        while author in random_quote:
                             random_quote = choice(quote_find)
                         await self.bot.say(box(random_quote))
 
         except IndexError:
-            await self.bot.say("Your search is not valid, please follow the examples.\n"
+            await self.bot.say("Your search is not valid, please follow the examples."
+                               "Make sure the names are correctly written\n"
                                "[p]quotes Margaret Thatcher; 5\n[p]quotes Morgan Freeman; 5")
 
 
