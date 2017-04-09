@@ -19,18 +19,18 @@ class Longcat:
         # and substract one to length because of letter t
         len_cat = len(ctx.message.content.split()[0][len_prefix:-1])
         len_cat = 20 if len_cat > 20 else len_cat  # To prevent abuse we set a max of 20
-        head = [Image.open(self.path + "head.png")]
+        cat_butt = [Image.open(self.path + "butt.png")]
         trunk = Image.open(self.path + "trunk.png")
-        butt = Image.open(self.path + "butt.png")
+        head = Image.open(self.path + "head.png")
         for i in range(len_cat-1):
-            head.append(trunk)
-        head.append(butt)
+            cat_butt.append(trunk)
+        cat_butt.append(head)
         widths, heights = zip(*(i.size for i in head))
         total_widths = sum(widths)
         total_heights = max(heights)
         new_im = Image.new("RGBA", (total_widths, total_heights))
         x_offset = 0
-        for im in head:
+        for im in cat_butt:
             new_im.paste(im, (x_offset, 0))
             x_offset += im.size[0]
         cat = "test.png"
