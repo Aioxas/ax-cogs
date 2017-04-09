@@ -25,7 +25,7 @@ class Longcat:
         for i in range(len_cat-1):
             cat_butt.append(trunk)
         cat_butt.append(head)
-        widths, heights = zip(*(i.size for i in head))
+        widths, heights = zip(*(i.size for i in cat_butt))
         total_widths = sum(widths)
         total_heights = max(heights)
         new_im = Image.new("RGBA", (total_widths, total_heights))
