@@ -2,9 +2,9 @@ from discord.ext import commands
 from random import choice
 from cogs.utils.chat_formatting import box
 import aiohttp
+import asyncio
 import html
 import re
-import urllib
 
 
 class Geico:
@@ -27,6 +27,7 @@ class Geico:
                 brsub = re.sub(regex[1], "", subs[0])
                 subs2 = html.unescape(brsub)
                 await self.bot.say(box(subs2))
+                await asyncio.sleep(1)
 
     @commands.command(name="quotes", pass_context=True, no_pm=True)
     @commands.cooldown(3, 60, commands.BucketType.user)
@@ -35,9 +36,8 @@ class Geico:
         Examples:
         [p]quotes Morgan Freeman; 5
         [p]quotes Margaret Thatcher; 2"""
-        regex = [" <a href=\"\/quotes\/authors\/([^`]*?).html\">", "title=\"view quote\">([^`]*?)<\/a>",
-                 "<h1 class=\"pull-left quoteListH1\" style=\"padding-right:20px\">([^`]*?) Quotes", "&#39;"]
-        option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'}
+        regex = "title=\"view quote\">([^`]*?)<\/a>"
+        url = 'http://www.brainyquote.com/quotes/authors/'
         try:
             author = author.split('; ')
             title = author[0]
@@ -45,26 +45,22 @@ class Geico:
             if number > 5:
                 number = 5
                 await self.bot.reply("Heck naw brah. 5 is max. Any more and you get killed.")
-            uri = 'http://www.brainyquote.com/search_results.html?q='
-            quary = title.lower()
-            encode = urllib.parse.quote_plus(quary, encoding='utf-8', errors='replace')
-            uir = uri + encode
-            async with aiohttp.request("GET", uir, headers=option) as resp:
+            url = url + title.lower()[0] + "/" + title.lower().replace(" ", "_") + ".html"
+            async with aiohttp.request("GET", url) as resp:
                 test = str(await resp.text())
-                author_find = re.findall(regex[0], test)
-                author_url = 'http://www.brainyquote.com/quotes/authors/' + author_find[0]
-                for i in range(number):
-                    async with aiohttp.request("GET", author_url) as resp:
-                        test = str(await resp.text())
-                        quote_find = re.findall(regex[1], test)
-                        random_quote = choice(quote_find)
-                        name_find = re.findall(regex[2], test)
-                        while random_quote == name_find[0]:
-                            random_quote = choice(quote_find)
-                        await self.bot.say(box(random_quote))
+                quote_find = list(set(re.findall(regex, test)))
+            for i in range(number):
+                random_quote = choice(quote_find)
+                quote_find.remove(random_quote)
+                while random_quote == title:
+                    random_quote = choice(quote_find)
+                random_quote = random_quote.replace("&#39;", "'") if "&#39;" in random_quote else random_quote
+                await self.bot.say(box(random_quote))
+                await asyncio.sleep(1)
 
         except IndexError:
-            await self.bot.say("Your search is not valid, please follow the examples.\n"
+            await self.bot.say("Your search is not valid, please follow the examples."
+                               "Make sure the names are correctly written\n"
                                "[p]quotes Margaret Thatcher; 5\n[p]quotes Morgan Freeman; 5")
 
 
