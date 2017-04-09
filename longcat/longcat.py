@@ -20,8 +20,8 @@ class Longcat:
         len_cat = len(ctx.message.content.split()[0][len_prefix:-1])
         len_cat = 20 if len_cat > 20 else len_cat  # To prevent abuse we set a max of 20
         head = [Image.open(self.path + "head.png")]
-        trunk = Image.open(self.path + "butt.png")
-        butt = Image.open(self.path + "trunk.png")
+        trunk = Image.open(self.path + "trunk.png")
+        butt = Image.open(self.path + "butt.png")
         for i in range(len_cat-1):
             head.append(trunk)
         head.append(butt)
