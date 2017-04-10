@@ -1,15 +1,16 @@
+import os
+import time
 from PIL import Image
 from discord.ext import commands
-import os
 
 
 class Longcat:
-
     def __init__(self, bot):
         self.bot = bot
         self.path = "data/longcat/"
 
-    nreow = ["c"+"a"*i+"t"for i in range(2, 20)]
+    # 42 is the answer to everything
+    nreow = ["c"+"a"*i+"t" for i in range(2, 42)]
 
     @commands.command(pass_context=True, aliases=nreow)
     async def cat(self, ctx):
@@ -18,25 +19,25 @@ class Longcat:
         # now we grab the message itself, take out anything beyond the command itself
         # and substract one to length because of letter t
         len_cat = len(ctx.message.content.split()[0][len_prefix:-1])
-        len_cat = 20 if len_cat > 20 else len_cat  # To prevent abuse we set a max of 20
-        cat_butt = [Image.open(self.path + "butt.png")]
+        the_cat = [Image.open(self.path + "butt.png")]
         trunk = Image.open(self.path + "trunk.png")
         head = Image.open(self.path + "head.png")
         for i in range(len_cat-1):
-            cat_butt.append(trunk)
-        cat_butt.append(head)
-        widths, heights = zip(*(i.size for i in cat_butt))
+            the_cat.append(trunk)
+        the_cat.append(head)
+        widths, heights = zip(*(i.size for i in the_cat))
         total_widths = sum(widths)
         total_heights = max(heights)
-        new_im = Image.new("RGBA", (total_widths, total_heights))
+        cat = Image.new("RGBA", (total_widths, total_heights))
         x_offset = 0
-        for im in cat_butt:
-            new_im.paste(im, (x_offset, 0))
+        for im in the_cat:
+            cat.paste(im, (x_offset, 0))
             x_offset += im.size[0]
-        cat = "test.png"
-        new_im.save(self.path + cat)
-        await self.bot.upload(self.path + "test.png")
-        os.remove(self.path + "test.png")
+        # I'm giving it a name based on a timestamp, this prevents future problems
+        litter_box = str(time.time()).split(".")[0] + ".png"
+        cat.save(self.path + litter_box)
+        await self.bot.upload(self.path + litter_box)
+        os.remove(self.path + litter_box)
 
 
 def check_folders():
