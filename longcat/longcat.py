@@ -11,11 +11,16 @@ class Longcat:
 
     # 42 is the answer to everything
     nreow = ["c"+"a"*i+"t" for i in range(2, 42)]
+    mya = ["ny"+"a"*i+"n" for i in range(1, 42)]
+    nreow.extend(mya)
 
     @commands.command(pass_context=True, aliases=nreow)
     async def cat(self, ctx):
         # we grab the length of the used prefix and add one letter c
-        len_prefix = len(ctx.prefix) + 1
+        if str(ctx.message.content.split(ctx.prefix)[1]).startswith("ny"):
+            len_prefix = len(ctx.prefix) + 2
+        else:
+            len_prefix = len(ctx.prefix) + 1
         # now we grab the message itself, take out anything beyond the command itself
         # and substract one to length because of letter t
         len_cat = len(ctx.message.content.split()[0][len_prefix:-1])
