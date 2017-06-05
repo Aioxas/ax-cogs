@@ -66,7 +66,7 @@ class AdvancedGoogle:
             r = self.unescape(r)
         for i in range(len(find)):
             if i == 0:
-                find[i] = find[i] + "\n\n**You might also want to check these out:**"
+                find[i] = "<" + find[i] + ">" + "\n\n**You might also want to check these out:**"
             else:
                 find[i] = "<{}>".format(find[i])
         return find
