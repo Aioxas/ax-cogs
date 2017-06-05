@@ -30,7 +30,6 @@ class AdvancedGoogle:
         await self.bot.say(result)
 
     async def images(self, ctx, regex, option, images: bool=False):
-        print(ctx)
         uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
         num = 7
         if images:
@@ -40,7 +39,6 @@ class AdvancedGoogle:
         else:
             quary = str(ctx.message.content
                         [len(ctx.prefix+ctx.command.name)+num:].lower())
-        print(quary)
         encode = urllib.parse.quote_plus(quary, encoding='utf-8',
                                          errors='replace')
         uir = uri+encode
