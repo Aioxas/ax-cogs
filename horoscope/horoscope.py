@@ -46,47 +46,47 @@ class Horoscope:
                  "sagittarius"]
         chinese_signs = ["ox", "goat", "rat", "snake", "dragon", "tiger",
                          "rabbit", "horse", "monkey", "rooster", "dog", "pig"]
-        horo_types = {"love": "http://www.tarot.com/daily-love-horoscope/",
-                      "daily": "http://www.tarot.com/daily-horoscope/",
-                      "chinese": "http://www.horoscope.com/us/horoscopes/"
-                      "chinese/horoscope-chinese-daily-today.aspx?sign="}
+        horo_styles = {"love": "http://www.tarot.com/daily-love-horoscope/",
+                       "daily": "http://www.tarot.com/daily-horoscope/",
+                       "chinese": "http://www.horoscope.com/us/horoscopes/"
+                       "chinese/horoscope-chinese-daily-today.aspx?sign="}
         regex = [
-         "<div class=\"block-horoscope-chinese-text f16 l20\">([^`]*?)<\/div>",
+         "<div class=\"horoscope-content\">\n<p><b class=\"date\">([^`]*?)<\/p>\n<\/div>",
          "<p class=\"js-today_interp_copy\">([^`]*?)<\/p>"]
         subs = "\n\s*"
         try:
             horos = sign.split(', ')
-            type = horos[0]
-            horos.remove(type)
+            style = horos[0]
+            horos.remove(style)
             sign = horos[0].lower()
-            if type == "chinese":
+            if style == "chinese":
                 if sign not in chinese_signs:
                     sign = self.getchinese_signs(int(sign)).lower()
-                uri = horo_types[type]
+                uri = horo_styles[style]
                 sign_num = str(chinese_signs.index(sign) + 1)
                 uir = uri + sign_num
                 async with aiohttp.request("GET", uir, headers=option) as resp:
                     test = str(await resp.text())
                     msg = re.findall(regex[0], test)
-                    msg = re.sub(subs, "", msg[0])
+                    msg = re.sub(subs, "", msg[0]).replace("</b>", "")
                     await self.bot.say("Today's chinese horoscope for the one"
                                        " born in the year of the {} is:\n\n"
                                        .format(sign) + box(msg))
             else:
-                if type not in horo_types:
-                    type = "daily"
+                if style not in horo_styles:
+                    style = "daily"
                 if sign not in signs:
                     sign = sign.split("/")
                     Month = sign[0]
                     Day = sign[1]
                     sign = signs[self.getzodiac_signs(Month, Day)]
-                uri = horo_types[type]
+                uri = horo_styles[style]
                 uir = uri + sign
                 async with aiohttp.request("GET", uir, headers=option) as resp:
                     test = str(await resp.text())
                     msg = re.findall(regex[1], test)
                     msg = re.sub(subs, "", msg[0])
-                    if type == "love":
+                    if style == "love":
                         await self.bot.say("Today's love horoscope for "
                                            "**{}** is:\n\n"
                                            .format(sign) + box(msg))
