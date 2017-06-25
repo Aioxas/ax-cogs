@@ -160,6 +160,13 @@ class AdvancedGoogle:
             # End of generic search
 
     async def on_message(self, message):
+        author = message.author
+
+        if author == self.bot.user:
+            return
+
+        if not self.bot.user_allowed(message):
+            return
         channel = message.channel
         str2find = "ok google "
         text = message.clean_content
