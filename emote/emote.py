@@ -168,13 +168,13 @@ class Emote:
         and [p]emotes list a (shows all the emotes beginning with a)"""
         server = ctx.message.server
         style = style.lower()
-        istyles = sorted(self.servers[server.id]["emotes"])
         if server.id not in self.servers:
             # default off
             self.servers[server.id] = dict({"status": False})
             if "emotes" not in self.servers[server.id]:
                 self.servers[server.id]["emotes"] = dict()
             dataIO.save_json(self.data_path, self.servers)
+        istyles = sorted(self.servers[server.id]["emotes"])
         if not istyles:
             await self.bot.say("Your emotes list is empty."
                                " Please add a few emotes using the [p]emote add function.")
