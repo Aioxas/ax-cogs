@@ -190,15 +190,19 @@ class Horoscope:
            Only accepts ttf."""
         option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)'
                   ' Gecko/20100101 Firefox/40.1'}
-        if not url.endswith("ttf"):
+
+        if url is None :
+            url = "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf"
+            if os.is_file("data/horoscope/FortuneCookieNF.ttf"):
+                return
+            else:
+                async with aiohttp.request("GET", url, headers=option) as resp:
+                    test = await resp.read()
+                    with open("data/horoscope/FortuneCookieNF.ttf", "wb") as f:
+                        f.write(test)
+        elif not url.endswith("ttf"):
             await self.bot.say("This is not a .ttf font, please use a .ttf font. Thanks")
             return
-        if url is None:
-            url = "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf"
-        async with aiohttp.request("GET", url, headers=option) as resp:
-                test = await resp.read()
-                with open("data/horoscope/FortuneCookieNF.ttf", "wb") as f:
-                    f.write(test)
         await self.bot.say("Font has been saved")
 
     def fortune_process(self, fortune):
