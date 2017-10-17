@@ -11,7 +11,7 @@ class AdvancedGoogle:
         self.bot = bot
 
     @commands.command(pass_context=True)
-    @commands.cooldown(5, 60, commands.BucketType.user)
+    @commands.cooldown(5, 60, commands.BucketType.channel)
     async def google(self, ctx, text):
         """Its google, you search with it.
         Example: google A magical pug
