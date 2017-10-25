@@ -9,6 +9,7 @@ class AdvancedGoogle:
 
     def __init__(self, bot):
         self.bot = bot
+        self.session = aiohttp.ClientSession()
 
     @commands.command(pass_context=True)
     @commands.cooldown(5, 60, commands.BucketType.channel)
@@ -43,7 +44,7 @@ class AdvancedGoogle:
                                          errors='replace')
         uir = uri+encode
         url = None
-        async with aiohttp.request('GET', uir, headers=option) as resp:
+        async with self.session.get(uir, headers=option) as resp:
             test = await resp.content.read()
             unicoded = test.decode("unicode_escape")
             query_find = regex[0].findall(unicoded)
@@ -141,7 +142,7 @@ class AdvancedGoogle:
             encode = urllib.parse.quote_plus(quary, encoding='utf-8',
                                              errors='replace')
             uir = uri + encode
-            async with aiohttp.request('GET', uir, headers=option) as resp:
+            async with self.session.get(uir, headers=option) as resp:
                 test = str(await resp.content.read())
                 query_find = regex[1].findall(test)
                 if not query_find:
