@@ -10,6 +10,9 @@ class AdvancedGoogle:
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
+        
+    def __unload(self):
+        self.session.close()
 
     @commands.command(pass_context=True)
     @commands.cooldown(5, 60, commands.BucketType.channel)
