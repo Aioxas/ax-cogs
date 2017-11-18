@@ -43,9 +43,10 @@ class Points:
     def permcheck(self, ctx):
         server = ctx.message.server
         author = ctx.message.author
-        if "bookkeeper" in self.db[server.id]:
-            bookkeeper = self.db[server.id]["bookkeeper"]
-        else:
+        try:
+            if "bookkeeper" in self.db[server.id]:
+                bookkeeper = self.db[server.id]["bookkeeper"]
+        except KeyError:
             self.db[server.id]["bookkeeper"] = []
             self.save_db()
             bookkeeper = []
