@@ -15,7 +15,7 @@ class AdvancedGoogle:
         self.session.close()
 
     @commands.command(pass_context=True)
-    @commands.cooldown(5, 60, commands.BucketType.channel)
+    @commands.cooldown(5, 60, commands.BucketType.server)
     async def google(self, ctx, text):
         """Its google, you search with it.
         Example: google A magical pug
