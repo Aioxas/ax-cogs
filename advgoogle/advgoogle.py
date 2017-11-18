@@ -174,7 +174,7 @@ class AdvancedGoogle:
         channel = message.channel
         str2find = "ok google "
         text = message.clean_content
-        if not text.startswith(str2find):
+        if not text.lower().startswith(str2find):
             return
         text = text.replace(str2find, "", 1)
         await self.bot.send_typing(channel)
