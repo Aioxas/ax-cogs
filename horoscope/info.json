@@ -1,9 +1,15 @@
 {
-    "AUTHOR" : "Aioxas",
-    "INSTALL_MSG" : "Thanks for installing my cog. \n[p]help Horoscope should be enough. If not [p]help horo, [p]help tsujiura should.",
-    "NAME" : "horoscope",
-    "SHORT" : "Zodiac and Chinese Horoscope and Fortune Cookie cog",
-    "REQUIREMENTS" : ["Pillow"],
-    "TAGS" : ["Utilites", "Fun"],
-    "DESCRIPTION" : "You can check your love and daily horoscope, as well as chinese horoscope. Random fortune cookie included."
+    "author": "Aioxas",
+    "install_msg": "Thanks for installing my cog. \n[p]help Horoscope should be enough. If not [p]help horo, [p]help tsujiura should.",
+    "name": "horoscope",
+    "short": "Zodiac and Chinese Horoscope and Fortune Cookie cog",
+    "requirements": [
+        "Pillow"
+    ],
+    "tags": [
+        "Utilites",
+        "Fun"
+    ],
+    "description": "You can check your love and daily horoscope, as well as chinese horoscope. Random fortune cookie included.",
+    "type": "COG"
 }

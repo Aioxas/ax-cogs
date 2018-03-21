@@ -1,8 +1,11 @@
 {
-    "AUTHOR" : "Kowlin and Aioxas",
-    "INSTALL_MSG" : "Thanks for installing this. \nYou can start your search by doing [p]google or saying \"ok google cats\" without quotations",
-    "NAME" : "Advanced Google",
-    "SHORT" : "Retrieves results from Google",
-    "TAGS" : ["Utilities"],
-    "DESCRIPTION" : "Retrieves Google or Google Image search results.\nOriginally made by Kowlin from https://github.com/Kowlin/refactored-cogs . \nI took the liberty of editing some of his code to make it"
+    "author": "Kowlin and Aioxas",
+    "install_msg": "Thanks for installing this. \nYou can start your search by doing [p]google or saying \"ok google cats\" without quotations",
+    "name": "Advanced Google",
+    "short": "Retrieves results from Google",
+    "tags": [
+        "Utilities"
+    ],
+    "description": "Retrieves Google or Google Image search results.\nOriginally made by Kowlin from https://github.com/Kowlin/refactored-cogs . \nI took the liberty of editing some of his code to make it",
+    "type": "COG"
 }

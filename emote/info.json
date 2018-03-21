@@ -1,9 +1,14 @@
 {
-    "AUTHOR" : "Aioxas",
-    "INSTALL_MSG" : "Thanks for installing my cog. \n[p]help Emote to start using the cog.",
-    "NAME" : "emote",
-    "SHORT" : "Local emote summoning, has the ability to add, remove, or list emotes. Based on irdumb's sadface cog",
-    "REQUIREMENTS" : ["Pillow"],
-    "TAGS" : ["Utilities"],
-    "DESCRIPTION" : "Emote has the ability to add or remove emotes that will trigger with a keyword. This keyword can be edited if an spelling error was made. This cog is per-server. You can also list the emotes based on specified names or amount per page to be shown.\n This cog was made possible by irdumb's sadface cog, as it provided an existing structure."
+    "author": "Aioxas",
+    "install_msg": "Thanks for installing my cog. \n[p]help Emote to start using the cog.",
+    "name": "emote",
+    "short": "Local emote summoning, has the ability to add, remove, or list emotes. Based on irdumb's sadface cog",
+    "requirements": [
+        "Pillow"
+    ],
+    "tags": [
+        "Utilities"
+    ],
+    "description": "Emote has the ability to add or remove emotes that will trigger with a keyword. This keyword can be edited if an spelling error was made. This cog is per-server. You can also list the emotes based on specified names or amount per page to be shown.\n This cog was made possible by irdumb's sadface cog, as it provided an existing structure.",
+    "type": "COG"
 }
