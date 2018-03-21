@@ -5,4 +5,5 @@
     "SHORT" : "Retrieves results from Google",
     "TAGS" : ["Utilities"],
     "DESCRIPTION" : "Retrieves Google or Google Image search results.\nOriginally made by Kowlin from https://github.com/Kowlin/refactored-cogs . \nI took the liberty of editing some of his code to make it"
+    "TYPE" : "COG"
 }
