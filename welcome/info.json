@@ -1,0 +1,11 @@
+{
+    "author": "irdumb and Aioxas/Axas",
+    "description": "When a new user joins, the bot will send a customized message to the channel of your choice",
+    "name": "Welcomes new users to your server(s)",
+    "tags": [
+        "welcome",
+        "greetings",
+        "join"
+    ],
+    "type": "COG"
+}

@@ -1,9 +1,14 @@
 {
-    "AUTHOR" : "Aioxas",
-    "INSTALL_MSG" : "Thanks for installing this cog.",
-    "NAME" : "Points",
-    "SHORT" : "Keep a tally of points",
-    "REQUIREMENTS" : ["Tabulate"],
-    "TAGS" : ["Utilities"],
-    "DESCRIPTION" : "Easily keep track of how many points people have. [p]add_member and [p]help Points should help you"
+    "author": "Aioxas",
+    "install_msg": "Thanks for installing this cog.",
+    "name": "Points",
+    "short": "Keep a tally of points",
+    "requirements": [
+        "Tabulate"
+    ],
+    "tags": [
+        "Utilities"
+    ],
+    "description": "Easily keep track of how many points people have. [p]add_member and [p]help Points should help you",
+    "type": "COG"
 }
