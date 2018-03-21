@@ -4,19 +4,20 @@ import aiohttp
 import re
 import urllib
 
+from redbot.core.bot import Red
+
 
 class AdvancedGoogle:
 
-    def __init__(self, bot):
+    def __init__(self, bot: Red):
         self.bot = bot
         self.session = aiohttp.ClientSession()
-        
+
     def __unload(self):
         self.session.close()
 
-    @commands.command(pass_context=True)
-    @commands.cooldown(5, 60, commands.BucketType.server)
-    async def google(self, ctx, text):
+    @commands.cooldown(5, 60, commands.BucketType.channel)
+    async def google(self, ctx: commands.Context, text):
         """Its google, you search with it.
         Example: google A magical pug
 
@@ -31,7 +32,7 @@ class AdvancedGoogle:
         Originally made by Kowlin https://github.com/Kowlin/refactored-cogs
         edited by Aioxas"""
         result = await self.get_response(ctx)
-        await self.bot.say(result)
+        await ctx.send(result)
 
     async def images(self, ctx, regex, option, images: bool=False):
         uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
@@ -164,27 +165,16 @@ class AdvancedGoogle:
             # End of generic search
 
     async def on_message(self, message):
-        author = message.author
-
-        if author == self.bot.user:
-            return
-
-        if not self.bot.user_allowed(message):
-            return
-        channel = message.channel
+        ctx = await self.bot.get_context(message)
         str2find = "ok google "
         text = message.clean_content
-        if not text.lower().startswith(str2find):
+        if not text.startswith(str2find):
             return
         text = text.replace(str2find, "", 1)
-        await self.bot.send_typing(channel)
+        ctx.channel.typing()
         try:
             result = await self.get_response(text)
-            await self.bot.send_message(channel, result)
+            await ctx.channel.send(result)
+
         except IndexError:
-            await self.bot.send_message(channel, "Your search yielded no results.")
-
-
-def setup(bot):
-    n = AdvancedGoogle(bot)
-    bot.add_cog(n)
+            await ctx.channel.send("Your search yielded no results.")
