@@ -86,7 +86,7 @@ class Welcome:
 
         def check(m):
             return author == m.author
-        answer = await self.bot.wait_for("message", timeout=120, check=check)
+        answer = await self.bot.wait_for('message', timeout=120, check=check)
         try:
             num = int(answer.content)
             choice = settings.pop(num)
