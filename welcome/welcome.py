@@ -129,7 +129,7 @@ class Welcome:
 
         If channel isn't specified, the guild's default channel will be used"""
         guild = ctx.guild
-        channel = await self.get_welcome_channel(guild) if channel is None else ctx.channel
+        channel = await self.get_welcome_channel(guild) if channel is None else channel
         if channel is None:
             channel = ctx.channel
         settings = channel.id
