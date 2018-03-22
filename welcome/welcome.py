@@ -86,7 +86,7 @@ class Welcome:
 
         def check(m):
             return author == m.author
-        answer = await self.bot.wait_for(timeout=120, check=check)
+        answer = await self.bot.wait_for("message", timeout=120, check=check)
         try:
             num = int(answer.content)
             choice = settings.pop(num)
@@ -292,7 +292,7 @@ class Welcome:
             return
         await ctx.channel.send("`Sending a testing message to "
                                "`{0.mention}".format(channel))
-        if self.speak_permissions(guild):
+        if await self.speak_permissions(guild):
             msg = settings["BOTS_MSG"] if bot else rand_msg
             if not bot and settings["WHISPER"]:
                 await ctx.author.send(msg.format(ctx.message.author, guild))
