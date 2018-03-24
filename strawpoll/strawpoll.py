@@ -5,7 +5,7 @@ from __main__ import send_cmd_help
 import os
 import aiohttp
 import json
-
+import html
 
 class Strawpoll:
 
