@@ -1,4 +1,5 @@
 from discord.ext import commands
+from cogs.utils.chat_formatting import box
 from .utils.dataIO import dataIO
 from __main__ import send_cmd_help
 import os
@@ -13,6 +14,17 @@ class Strawpoll:
         self.settings = dataIO.load_json("data/strawpoll/strawpoll.json")
         self.fp = "data/strawpoll/strawpoll.json"
 
+    @commands.command(name="results", pass_context=True, no_pm=True)
+    async def _results(self, ctx, pollid string):
+        """Results of a strawpoll are returned"""
+        async with aiohttp.request('GET', 'http://strawpoll.me/api/v2/polls/{}'.format(pollid),
+                                       headers={'content-type': 'application/json'}) as resp:
+                data = await resp.json()
+                s = "{}\n\n".format(html.unescape(data["title"]))
+                for o in range(len(data["options"])):
+                    s += "{}: {}\n".format(html.unescape(data["options"][o]), data["votes"][o])
+                await self.bot.say(box(s))
+        
     @commands.command(name="strawpoll", pass_context=True, no_pm=True)
     async def _strawpoll(self, ctx, *, question, options=None):
         """Makes a poll based on questions and choices or options. must be divided by "; "
