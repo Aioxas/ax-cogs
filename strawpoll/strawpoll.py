@@ -15,7 +15,7 @@ class Strawpoll:
         self.fp = "data/strawpoll/strawpoll.json"
 
     @commands.command(name="results", pass_context=True, no_pm=True)
-    async def _results(self, ctx, pollid string):
+    async def _results(self, ctx, pollid):
         """Results of a strawpoll are returned"""
         async with aiohttp.request('GET', 'http://strawpoll.me/api/v2/polls/{}'.format(pollid),
                                        headers={'content-type': 'application/json'}) as resp:
