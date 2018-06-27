@@ -256,7 +256,7 @@ class Welcome:
         if bot_role:
             try:
                 role = discord.utils.get(guild.roles, name=bot_role)
-                await self.bot.add_roles(member, role)
+                await member.add_roles(role)
             except:
                 print('welcome.py: unable to add {} role to {}. '
                       'Role was deleted, network error, or lacking '
