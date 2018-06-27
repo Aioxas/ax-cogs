@@ -39,7 +39,7 @@ class Strawpoll:
         else:
             normal = {"title": title, "options": options_list}
             request = dict(normal, **self.settings)
-            async with aiohttp.request('POST', 'http://strawpoll.me/api/v2/polls',
+            async with aiohttp.request('POST', 'https://www.strawpoll.me/api/v2/polls',
                                        headers={'content-type': 'application/json'},
                                        data=json.dumps(request)) as resp:
                 test = await resp.content.read()
