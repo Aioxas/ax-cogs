@@ -215,9 +215,9 @@ class Welcome:
         settings = channel.id
         if not guild.get_member(self.bot.user.id).permissions_in(channel).send_messages:
             return await ctx.send(
-                "I do not have permissions to send " "messages to {0.mention}".format(channel)
+                "I do not have permissions to send messages to {0.mention}".format(channel)
             )
-        await channel.send("I will now send welcome " "messages to {0.mention}".format(channel))
+        await channel.send("I will now send welcome messages to {0.mention}".format(channel))
         await self._welcome.guild(guild).CHANNEL.set(settings)
         await self.send_testing_msg(ctx)
 
@@ -231,10 +231,10 @@ class Welcome:
         settings = channel.id
         if not guild.get_member(self.bot.user.id).permissions_in(channel).send_messages:
             return await ctx.send(
-                "I do not have permissions to send " "messages to {0.mention}".format(channel)
+                "I do not have permissions to send messages to {0.mention}".format(channel)
             )
 
-        await channel.send("I will now send leaving " "messages to {0.mention}".format(channel))
+        await channel.send("I will now send leaving messages to {0.mention}".format(channel))
         await self._welcome.guild(guild).LEAVE_CHANNEL.set(settings)
         await self.send_testing_msg(ctx, leave=True)
 
@@ -274,7 +274,7 @@ class Welcome:
             await ctx.send("Bots that join this guild will not have a role applied.")
         else:
             await ctx.send(
-                "Bots that join this guild will " "now be put into the {} role.".format(role.name)
+                "Bots that join this guild will now be put into the {} role.".format(role.name)
             )
 
     @welcomeset.command()
@@ -445,7 +445,7 @@ class Welcome:
         rand_msg = msg or rand_choice(settings["GREETING"])
         if channel is None:
             await ctx.channel.send(
-                "I can't find the specified channel. " "It might have been deleted."
+                "I can't find the specified channel. It might have been deleted."
             )
             return
 
@@ -464,5 +464,5 @@ class Welcome:
             return await lchannel.send(msg.format(ctx.message.author, guild))
         else:
             await ctx.channel.send(
-                "I do not have permissions to send messages to " "{0.mention}".format(channel)
+                "I do not have permissions to send messages to {0.mention}".format(channel)
             )
