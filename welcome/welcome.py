@@ -31,7 +31,8 @@ class Welcome:
 
         self._welcome.register_guild(**self.default_guild_settings)
 
-    @commands.group(no_pm=True)
+    @commands.group()
+    @commands.guild_only()
     @checks.admin_or_permissions(manage_guild=True)
     async def welcomeset(self, ctx):
         """Sets welcome module settings"""
@@ -60,7 +61,7 @@ class Welcome:
             await ctx.send_help()
             return
 
-    @welcomeset_msg.command(name="add", no_pm=True)
+    @welcomeset_msg.command(name="add")
     async def welcomeset_msg_add(self, ctx, *, format_msg):
         """Adds a welcome message format for the guild to be chosen at random
 
@@ -80,7 +81,7 @@ class Welcome:
         await ctx.send("Welcome message added for the guild.")
         await self.send_testing_msg(ctx, msg=format_msg)
 
-    @welcomeset_msg.command(name="addleave", no_pm=True)
+    @welcomeset_msg.command(name="addleave")
     async def welcomeset_leavemsg_add(self, ctx, *, format_msg):
         """Adds a leave message format for the guild to be chosen at random
 
@@ -95,7 +96,7 @@ class Welcome:
         await ctx.send("Leave message added for the guild.")
         await self.send_testing_msg(ctx, leave=True, msg=format_msg)
 
-    @welcomeset_msg.command(name="del", no_pm=True)
+    @welcomeset_msg.command(name="del")
     async def welcomeset_msg_del(self, ctx):
         """Removes a welcome message from the random message list
         """
@@ -122,7 +123,7 @@ class Welcome:
         await ctx.send("**This message was deleted:**\n{}".format(choice))
         await self._welcome.guild(guild).GREETING.set(settings)
 
-    @welcomeset_msg.command(name="delleave", no_pm=True)
+    @welcomeset_msg.command(name="delleave")
     async def welcomeset_leavemsg_del(self, ctx):
         """Removes a leave message from the random message list
         """
@@ -149,7 +150,7 @@ class Welcome:
         await ctx.send("**This message was deleted:**\n{}".format(choice))
         await self._welcome.guild(guild).LEAVE_MSG.set(settings)
 
-    @welcomeset_msg.command(name="list", no_pm=True)
+    @welcomeset_msg.command(name="list")
     async def welcomeset_msg_list(self, ctx):
         """Lists the welcome messages of this guild
         """
@@ -161,7 +162,7 @@ class Welcome:
         for page in pagify(msg, ["\n", " "], shorten_by=20):
             await ctx.send("```\n{}\n```".format(page))
 
-    @welcomeset_msg.command(name="listleave", no_pm=True)
+    @welcomeset_msg.command(name="listleave")
     async def welcomeset_leavemsg_list(self, ctx):
         """Lists the leave messages of this guild
         """
@@ -238,13 +239,13 @@ class Welcome:
         await self._welcome.guild(guild).LEAVE_CHANNEL.set(settings)
         await self.send_testing_msg(ctx, leave=True)
 
-    @welcomeset.group(name="bot", no_pm=True)
+    @welcomeset.group(name="bot")
     async def welcomeset_bot(self, ctx):
         """Bot settings for message and role given."""
         if ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group):
             return await ctx.send_help()
 
-    @welcomeset_bot.command(name="msg", no_pm=True)
+    @welcomeset_bot.command(name="msg")
     async def welcomeset_bot_msg(self, ctx, *, format_msg=None):
         """Set the welcome message for bots.
 
@@ -262,7 +263,7 @@ class Welcome:
             await self.send_testing_msg(ctx, bot=True)
 
     # TODO: Check if have permissions
-    @welcomeset_bot.command(name="role", no_pm=True)
+    @welcomeset_bot.command(name="role")
     async def welcomeset_bot_role(self, ctx, role: discord.Role = None):
         """Set the role to put bots in when they join.
         Leave blank to not give them a role."""
