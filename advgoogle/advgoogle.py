@@ -15,7 +15,8 @@ class AdvancedGoogle:
 
     def __unload(self):
         self.session.close()
-
+    @commands.command()
+    @commands.guild_only()
     @commands.cooldown(5, 60, commands.BucketType.channel)
     async def google(self, ctx: commands.Context, text):
         """Its google, you search with it.
