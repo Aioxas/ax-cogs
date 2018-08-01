@@ -168,7 +168,7 @@ class AdvancedGoogle:
     async def on_message(self, message):
         ctx = await self.bot.get_context(message)
         str2find = "ok google "
-        text = message.clean_content
+        text = message.clean_content.lower()
         if not text.startswith(str2find):
             return
         text = text.replace(str2find, "", 1)
