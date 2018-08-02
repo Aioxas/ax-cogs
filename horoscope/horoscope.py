@@ -16,6 +16,7 @@ class Horoscope:
 
     def __init__(self, bot):
         self.bot = bot
+        self.session = aiohttp.ClientSession()
 
     @commands.command(name="horo", pass_context=True, no_pm=True)
     @commands.cooldown(10, 60, commands.BucketType.user)
@@ -39,20 +40,23 @@ class Horoscope:
                   [p]horo whatever, virgo
                   [p]horo chinese, 1901
                   [p]horo love, 02/10"""
-        option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)'
-                  ' Gecko/20100101 Firefox/40.1'}
-        signs = ["capricorn", "aquarius", "pisces", "aries", "taurus",
-                 "gemini", "cancer", "leo", "virgo", "libra", "scorpio",
-                 "sagittarius"]
+        option = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                  'AppleWebKit/537.36 (KHTML, lnamee Gecko) '
+                  'Chrome/67.0.3396.99 Safari/537.36'}
+        signs = ["aries", "taurus", "gemini", "cancer", "leo",
+                 "virgo", "libra", "scorpio", "sagittarius", "capricorn",
+                 "aquarius", "pisces"]
         chinese_signs = ["ox", "goat", "rat", "snake", "dragon", "tiger",
                          "rabbit", "horse", "monkey", "rooster", "dog", "pig"]
-        horo_styles = {"love": "http://www.tarot.com/daily-love-horoscope/",
-                       "daily": "http://www.tarot.com/daily-horoscope/",
+        horo_styles = {"love": "https://www.horoscope.com/us/horoscopes/"
+                       "love/horoscope-love-daily-today.aspx?sign=",
+                       "daily": "https://www.horoscope.com/us/horoscopes/"
+                       "general/horoscope-general-daily-today.aspx?sign=",
                        "chinese": "http://www.horoscope.com/us/horoscopes/"
                        "chinese/horoscope-chinese-daily-today.aspx?sign="}
         regex = [
-         "<div class=\"horoscope-content\">\n<p><b class=\"date\">([^`]*?)<\/p>\n<\/div>",
-         "<p class=\"js-today_interp_copy\">([^`]*?)<\/p>"]
+         "<div class=\"horoscope-content\">\n<p><b class=\"date\">([^`]*?)<\/b> - ([^`]*?)<\/p>\n<p>\n<p class=\"mobile\">",
+         "<div class=\"horoscope-content\">\n<p>\n<b class=\"date\">([^`]*?)<\/b> - ([^`]*?)<p class=\"mobile\">"]
         subs = "\n\s*"
         try:
             horos = sign.split(', ')
@@ -65,12 +69,12 @@ class Horoscope:
                 uri = horo_styles[style]
                 sign_num = str(chinese_signs.index(sign) + 1)
                 uir = uri + sign_num
-                async with aiohttp.request("GET", uir, headers=option) as resp:
+                async with self.session.get(uir, headers=option) as resp:
                     test = str(await resp.text())
-                    msg = re.findall(regex[0], test)
-                    msg = re.sub(subs, "", msg[0]).replace("</b>", "")
+                    msg = re.findall(regex[0], test)[0]
+                    msg = msg[0] + " - " + msg[1]
                     await self.bot.say("Today's chinese horoscope for the one"
-                                       " born in the year of the {} is:\n\n"
+                                       " born in the year of the {} is:\n"
                                        .format(sign) + box(msg))
             else:
                 if style not in horo_styles:
@@ -80,19 +84,24 @@ class Horoscope:
                     Month = sign[0]
                     Day = sign[1]
                     sign = signs[self.getzodiac_signs(Month, Day)]
+                    
                 uri = horo_styles[style]
-                uir = uri + sign
-                async with aiohttp.request("GET", uir, headers=option) as resp:
+                sign_num = str(signs.index(sign) + 1)
+                sign = list(sign)
+                sign[0] = sign[0].upper()
+                sign = "".join(sign)
+                uir = uri + sign_num
+                async with self.session.get(uir, headers=option) as resp:
                     test = str(await resp.text())
-                    msg = re.findall(regex[1], test)
-                    msg = re.sub(subs, "", msg[0])
+                    msg = re.findall(regex[1], test)[0]
+                    msg = msg[0] + " - " + msg[1]
                     if style == "love":
                         await self.bot.say("Today's love horoscope for "
-                                           "**{}** is:\n\n"
+                                           "**{}** is:\n"
                                            .format(sign) + box(msg))
                     else:
                         await self.bot.say("Today's horoscope for "
-                                           "**{}** is:\n\n"
+                                           "**{}** is:\n"
                                            .format(sign) + box(msg))
 
         except IndexError:
@@ -139,7 +148,7 @@ class Horoscope:
                  "3\)<\/strong><\/a>([^`]*?)<\/div>"]
         url = "http://www.fortunecookiemessage.com"
         await self.file_check()
-        async with aiohttp.request("GET", url, headers={"encoding": "utf-8"}) as resp:
+        async with self.session.get(url, headers={"encoding": "utf-8"}) as resp:
             test = str(await resp.text())
             fortune = re.findall(regex[0], test)
             fortest = re.match("<p>", fortune[0])
@@ -163,7 +172,7 @@ class Horoscope:
         option = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)'
                   ' Gecko/20100101 Firefox/40.1'}
         if os.path.exists("data/horoscope/cookie.png"):
-            async with aiohttp.request("GET", urls[0], headers=option) as resp:
+            async with self.session.get(urls[0], headers=option) as resp:
                 test = await resp.read()
                 meow = False
                 with open("data/horoscope/cookie.png", "rb") as e:
@@ -173,12 +182,12 @@ class Horoscope:
                     with open("data/horoscope/cookie.png", "wb") as f:
                         f.write(test)
         elif not os.path.exists("data/horoscope/cookie.png"):
-            async with aiohttp.request("GET", urls[0], headers=option) as resp:
+            async with self.session.get(urls[0], headers=option) as resp:
                 test = await resp.read()
                 with open("data/horoscope/cookie.png", "wb") as f:
                     f.write(test)
         if not os.path.exists("data/horoscope/FortuneCookieNF.ttf"):
-            async with aiohttp.request("GET", urls[1], headers=option) as resp:
+            async with self.session.get(urls[1], headers=option) as resp:
                 test = await resp.read()
                 with open("data/horoscope/FortuneCookieNF.ttf", "wb") as f:
                     f.write(test)
@@ -196,7 +205,7 @@ class Horoscope:
             if os.is_file("data/horoscope/FortuneCookieNF.ttf"):
                 return
             else:
-                async with aiohttp.request("GET", url, headers=option) as resp:
+                async with self.session.get(url, headers=option) as resp:
                     test = await resp.read()
                     with open("data/horoscope/FortuneCookieNF.ttf", "wb") as f:
                         f.write(test)
