@@ -1,4 +1,4 @@
-from redbot.core import commands
+from discord.ext import commands
 from random import choice
 import aiohttp
 import re
