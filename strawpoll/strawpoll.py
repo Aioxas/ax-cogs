@@ -1,10 +1,11 @@
 from discord.ext import commands
+from cogs.utils.chat_formatting import box
 from .utils.dataIO import dataIO
 from __main__ import send_cmd_help
 import os
 import aiohttp
 import json
-
+import html
 
 class Strawpoll:
 
@@ -12,7 +13,19 @@ class Strawpoll:
         self.bot = bot
         self.settings = dataIO.load_json("data/strawpoll/strawpoll.json")
         self.fp = "data/strawpoll/strawpoll.json"
+        self.url = "https://www.strawpoll.me/api/v2"
 
+    @commands.command(name="results", pass_context=True, no_pm=True)
+    async def _results(self, ctx, pollid):
+        """Results of a strawpoll are returned"""
+        async with aiohttp.request('GET', self.url + '/polls/{}'.format(pollid),
+                                       headers={'content-type': 'application/json'}) as resp:
+                data = await resp.json()
+                s = "{}\n\n".format(html.unescape(data["title"]))
+                for o in range(len(data["options"])):
+                    s += "{}: {}\n".format(html.unescape(data["options"][o]), data["votes"][o])
+                await self.bot.say(box(s))
+        
     @commands.command(name="strawpoll", pass_context=True, no_pm=True)
     async def _strawpoll(self, ctx, *, question, options=None):
         """Makes a poll based on questions and choices or options. must be divided by "; "
@@ -27,7 +40,7 @@ class Strawpoll:
         else:
             normal = {"title": title, "options": options_list}
             request = dict(normal, **self.settings)
-            async with aiohttp.request('POST', 'http://strawpoll.me/api/v2/polls',
+            async with aiohttp.request('POST', self.url + '/polls',
                                        headers={'content-type': 'application/json'},
                                        data=json.dumps(request)) as resp:
                 test = await resp.content.read()
