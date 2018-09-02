@@ -13,11 +13,12 @@ class Strawpoll:
         self.bot = bot
         self.settings = dataIO.load_json("data/strawpoll/strawpoll.json")
         self.fp = "data/strawpoll/strawpoll.json"
+        self.url = "https://www.strawpoll.me/api/v2"
 
     @commands.command(name="results", pass_context=True, no_pm=True)
     async def _results(self, ctx, pollid):
         """Results of a strawpoll are returned"""
-        async with aiohttp.request('GET', 'http://strawpoll.me/api/v2/polls/{}'.format(pollid),
+        async with aiohttp.request('GET', self.url + '/polls/{}'.format(pollid),
                                        headers={'content-type': 'application/json'}) as resp:
                 data = await resp.json()
                 s = "{}\n\n".format(html.unescape(data["title"]))
@@ -39,7 +40,7 @@ class Strawpoll:
         else:
             normal = {"title": title, "options": options_list}
             request = dict(normal, **self.settings)
-            async with aiohttp.request('POST', 'https://www.strawpoll.me/api/v2/polls',
+            async with aiohttp.request('POST', self.url + '/polls',
                                        headers={'content-type': 'application/json'},
                                        data=json.dumps(request)) as resp:
                 test = await resp.content.read()
