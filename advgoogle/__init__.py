@@ -1,5 +1,5 @@
 from .advgoogle import AdvancedGoogle
-from discord.ext import commands
+from redbot.core import commands
 
 
 def setup(bot: commands.Bot):

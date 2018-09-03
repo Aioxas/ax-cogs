@@ -1,10 +1,9 @@
 import asyncio
 import discord
-from discord.ext import commands
 from collections import OrderedDict
 from operator import itemgetter
 
-from redbot.core import Config, checks
+from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box
 
@@ -14,10 +13,7 @@ from tabulate import tabulate
 class Points:
     """Point System"""
 
-    default_guild_settings = {
-        "bookkeeper": [],
-        "members": {}
-    }
+    default_guild_settings = {"bookkeeper": [], "members": {}}
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -34,8 +30,7 @@ class Points:
     @points.group(pass_context=True)
     async def member(self, ctx):
         """Member settings"""
-        if ctx.invoked_subcommand is None or \
-                isinstance(ctx.invoked_subcommand, commands.Group):
+        if ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group):
             await ctx.send_help()
 
     def permcheck(self, ctx):
@@ -65,23 +60,21 @@ class Points:
                 names = name.split(",")
             namesp = names.copy()
             for i in range(len(names)):
-                names[i] = discord.utils.find(
-                    lambda m: m.display_name == names[i], guild.members)
+                names[i] = discord.utils.find(lambda m: m.display_name == names[i], guild.members)
                 if names[i] is None:
-                    names[i] = discord.utils.find(
-                        lambda m: m.name == names[i], guild.members)
+                    names[i] = discord.utils.find(lambda m: m.name == names[i], guild.members)
             name = None
         else:
             namea = name[:]
-            name = discord.utils.find(
-                lambda m: m.display_name == name, guild.members)
+            name = discord.utils.find(lambda m: m.display_name == name, guild.members)
             if name is None:
-                name = discord.utils.find(
-                    lambda m: m.name == name, guild.members)
+                name = discord.utils.find(lambda m: m.name == name, guild.members)
                 if name is None:
-                    await ctx.send("{} was not found, please check the spelling and also make "
-                                   "sure that the member name being entered is a member in your Discord and "
-                                   "that its the same as their Discord name / nickname.".format(namea))
+                    await ctx.send(
+                        "{} was not found, please check the spelling and also make "
+                        "sure that the member name being entered is a member in your Discord and "
+                        "that its the same as their Discord name / nickname.".format(namea)
+                    )
                     return
         members = await self._points.guild(guild).members()
         if not name:
@@ -89,16 +82,26 @@ class Points:
             for x in names:
                 counter += 1
                 if x is None:
-                    await ctx.send("{} was not found, please check the spelling and also make "
-                                   "sure that the member name being entered is a member in your Discord and "
-                                   "that its the same as their Discord name / nickname.".format(namesp[counter]))
+                    await ctx.send(
+                        "{} was not found, please check the spelling and also make "
+                        "sure that the member name being entered is a member in your Discord and "
+                        "that its the same as their Discord name / nickname.".format(
+                            namesp[counter]
+                        )
+                    )
                     await asyncio.sleep(1)
                     continue
                 elif x.id in members:
                     await ctx.send("{} is already in the list".format(x.display_name))
                 elif x.id not in members:
                     members[x.id] = OrderedDict(
-                        {"Name": x.display_name, "Balance": 0, "Lifetime Gain": 0, "Lifetime Loss": 0})
+                        {
+                            "Name": x.display_name,
+                            "Balance": 0,
+                            "Lifetime Gain": 0,
+                            "Lifetime Loss": 0,
+                        }
+                    )
                     await self._points.guild(guild).members.set(members)
                     await ctx.send("{} has been added to the list.".format(x.display_name))
                 await asyncio.sleep(1)
@@ -109,7 +112,13 @@ class Points:
                 return
             elif name.id not in members:
                 members[name.id] = OrderedDict(
-                    {"Name": name.display_name, "Balance": 0, "Lifetime Gain": 0, "Lifetime Loss": 0})
+                    {
+                        "Name": name.display_name,
+                        "Balance": 0,
+                        "Lifetime Gain": 0,
+                        "Lifetime Loss": 0,
+                    }
+                )
                 await self._points.guild(guild).members.set(members)
                 await ctx.send("{} has been added to the list.".format(name.display_name))
 
@@ -131,9 +140,9 @@ class Points:
                 names = name.split(",")
             namesp = names.copy()
             for i in range(len(names)):
-                    names[i] = discord.utils.find(lambda m: m.display_name == names[i], guild.members)
-                    if names[i] is None:
-                        names[i] = discord.utils.find(lambda m: m.name == names[i], guild.members)
+                names[i] = discord.utils.find(lambda m: m.display_name == names[i], guild.members)
+                if names[i] is None:
+                    names[i] = discord.utils.find(lambda m: m.name == names[i], guild.members)
             name = None
         else:
             namea = name[:]
@@ -141,9 +150,11 @@ class Points:
             if name is None:
                 name = discord.utils.find(lambda m: m.name == name, guild.members)
                 if name is None:
-                    await ctx.send("{} was not found, please check the spelling and also make "
-                                   "sure that the member name being entered is a member in your Discord and "
-                                   "that its the same as their Discord name / nickname.".format(namea))
+                    await ctx.send(
+                        "{} was not found, please check the spelling and also make "
+                        "sure that the member name being entered is a member in your Discord and "
+                        "that its the same as their Discord name / nickname.".format(namea)
+                    )
                     return
         members = await self._points.guild(guild).members()
         if not name:
@@ -151,14 +162,20 @@ class Points:
             for x in names:
                 counter += 1
                 if x is None:
-                    await ctx.send("{} was not found, please check the spelling and also make "
-                                   "sure that the member name being entered is a member in your Discord and "
-                                   "that its the same as their Discord name / nickname.".format(namesp[counter]))
+                    await ctx.send(
+                        "{} was not found, please check the spelling and also make "
+                        "sure that the member name being entered is a member in your Discord and "
+                        "that its the same as their Discord name / nickname.".format(
+                            namesp[counter]
+                        )
+                    )
                     await asyncio.sleep(1)
                     continue
                 elif x.id not in members:
-                    await ctx.send("{} is not in the list, please make sure they have been added first to "
-                                   "the list.".format(x.display_name))
+                    await ctx.send(
+                        "{} is not in the list, please make sure they have been added first to "
+                        "the list.".format(x.display_name)
+                    )
                 elif x.id in members:
                     members.pop(x.id, None)
                     await self._points.guild(guild).members.set(members)
@@ -166,9 +183,11 @@ class Points:
                 await asyncio.sleep(1)
         else:
             if name.id not in members:
-                    await ctx.send("{} is not in the list, please make sure they have been added first to "
-                                   "the list.".format(name.display_name))
-                    return
+                await ctx.send(
+                    "{} is not in the list, please make sure they have been added first to "
+                    "the list.".format(name.display_name)
+                )
+                return
             elif name.id in members:
                 members.pop(name.id, None)
                 await self._points.guild(guild).members.set(members)
@@ -219,37 +238,41 @@ class Points:
                 names = name.split(",")
             namesp = names.copy()
             for i in range(len(names)):
-                names[i] = discord.utils.find(
-                    lambda m: m.display_name == names[i], guild.members)
+                names[i] = discord.utils.find(lambda m: m.display_name == names[i], guild.members)
                 if names[i] is None:
-                    names[i] = discord.utils.find(
-                        lambda m: m.name == names[i], guild.members)
+                    names[i] = discord.utils.find(lambda m: m.name == names[i], guild.members)
             name = None
         else:
             namea = name[:]
-            name = discord.utils.find(
-                lambda m: m.display_name == name, guild.members)
+            name = discord.utils.find(lambda m: m.display_name == name, guild.members)
             if name is None:
-                name = discord.utils.find(
-                    lambda m: m.name == name, guild.members)
+                name = discord.utils.find(lambda m: m.name == name, guild.members)
                 if name is None:
-                    await ctx.send("{} was not found, please check the spelling and also make "
-                                   "sure that the member name being entered is a member in your Discord and "
-                                   "that its the same as their Discord name / nickname.".format(namea))
+                    await ctx.send(
+                        "{} was not found, please check the spelling and also make "
+                        "sure that the member name being entered is a member in your Discord and "
+                        "that its the same as their Discord name / nickname.".format(namea)
+                    )
                     return
         if not name:
             counter = -1
             for x in names:
                 counter += 1
                 if x is None:
-                    await ctx.send("{} was not found, please check the spelling and also make "
-                                   "sure that the member name being entered is a member in your Discord and "
-                                   "that its the same as their Discord name / nickname.".format(namesp[counter]))
+                    await ctx.send(
+                        "{} was not found, please check the spelling and also make "
+                        "sure that the member name being entered is a member in your Discord and "
+                        "that its the same as their Discord name / nickname.".format(
+                            namesp[counter]
+                        )
+                    )
                     await asyncio.sleep(1)
                     continue
                 elif x.id not in self._points.guild(guild).members():
-                    await ctx.send("{} was not found. Please add them first using points member add"
-                                   " <discord name or Nickname>".format(x.display_name))
+                    await ctx.send(
+                        "{} was not found. Please add them first using points member add"
+                        " <discord name or Nickname>".format(x.display_name)
+                    )
                 else:
                     members[x.id]["Lifetime Gain"] += points
                     members[x.id]["Balance"] += points
@@ -257,8 +280,10 @@ class Points:
                 await asyncio.sleep(1)
         else:
             if name.id not in self._points.guild(guild).members():
-                await ctx.send("{} is not in the list, please register first using points member add"
-                               " <Discord name or nickname>".format(namea))
+                await ctx.send(
+                    "{} is not in the list, please register first using points member add"
+                    " <Discord name or nickname>".format(namea)
+                )
                 return
             members[name.id]["Lifetime Gain"] += points
             members[name.id]["Balance"] += points
@@ -285,37 +310,41 @@ class Points:
                 names = name.split(",")
             namesp = names.copy()
             for i in range(len(names)):
-                names[i] = discord.utils.find(
-                    lambda m: m.display_name == names[i], guild.members)
+                names[i] = discord.utils.find(lambda m: m.display_name == names[i], guild.members)
                 if names[i] is None:
-                    names[i] = discord.utils.find(
-                        lambda m: m.name == names[i], guild.members)
+                    names[i] = discord.utils.find(lambda m: m.name == names[i], guild.members)
             name = None
         else:
             namea = name[:]
-            name = discord.utils.find(
-                lambda m: m.display_name == name, guild.members)
+            name = discord.utils.find(lambda m: m.display_name == name, guild.members)
             if name is None:
-                name = discord.utils.find(
-                    lambda m: m.name == name, guild.members)
+                name = discord.utils.find(lambda m: m.name == name, guild.members)
                 if name is None:
-                    await ctx.send("{} was not found, please check the spelling and also make "
-                                   "sure that the member name being entered is a member in your Discord and "
-                                   "that its the same as their Discord name / nickname.".format(namea))
+                    await ctx.send(
+                        "{} was not found, please check the spelling and also make "
+                        "sure that the member name being entered is a member in your Discord and "
+                        "that its the same as their Discord name / nickname.".format(namea)
+                    )
                     return
         if not name:
             counter = -1
             for x in names:
                 counter += 1
                 if x is None:
-                    await ctx.send("{} was not found, please check the spelling and also make "
-                                   "sure that the member name being entered is a member in your Discord and "
-                                   "that its the same as their Discord name / nickname.".format(namesp[counter]))
+                    await ctx.send(
+                        "{} was not found, please check the spelling and also make "
+                        "sure that the member name being entered is a member in your Discord and "
+                        "that its the same as their Discord name / nickname.".format(
+                            namesp[counter]
+                        )
+                    )
                     await asyncio.sleep(1)
                     continue
-                elif x.id not in self.db[guild]:
-                    await ctx.send("{} was not found. Please add them first using points member add"
-                                   " <discord name or Nickname>".format(x.display_name))
+                elif x.id not in members:
+                    await ctx.send(
+                        "{} was not found. Please add them first using points member add"
+                        " <discord name or Nickname>".format(x.display_name)
+                    )
                 else:
 
                     members[x.id]["Lifetime Loss"] += points
@@ -323,9 +352,11 @@ class Points:
                     await ctx.send("{} points substracted from {}".format(points, x.name))
                 await asyncio.sleep(1)
         else:
-            if name.id not in self.db[guild]:
-                await ctx.send("{} is not in the list, please register first using points member add"
-                               " <Discord name or nickname>".format(namea))
+            if name.id not in members:
+                await ctx.send(
+                    "{} is not in the list, please register first using points member add"
+                    " <Discord name or nickname>".format(namea)
+                )
                 return
             members[name.id]["Lifetime Loss"] += points
             members[name.id]["Balance"] -= points
@@ -338,18 +369,32 @@ class Points:
         guild = ctx.guild
         db = await self._points.guild(guild).members()
         if len(db) < 1:
-            await ctx.send("List is empty, please add members first using [p]points add <Discord name or nickname>")
+            await ctx.send(
+                "List is empty, please add members first using [p]points add <Discord name or nickname>"
+            )
             return
         try:
-            columns = [sorted([y for y in db[x].keys()], reverse=True)
-                       for x in db][0]
+            columns = [sorted([y for y in db[x].keys()], reverse=True) for x in db][0]
             i, j = columns.index(columns[1]), columns.index(columns[2])
             columns[i], columns[j] = columns[j], columns[i]
-            rows = sorted([[db[x]["Name"], db[x]["Lifetime Gain"], db[x]["Lifetime Loss"], db[x]["Balance"]]
-                           for x in db], key=itemgetter(3, 0), reverse=True)
+            rows = sorted(
+                [
+                    [
+                        db[x]["Name"],
+                        db[x]["Lifetime Gain"],
+                        db[x]["Lifetime Loss"],
+                        db[x]["Balance"],
+                    ]
+                    for x in db
+                ],
+                key=itemgetter(3, 0),
+                reverse=True,
+            )
         except IndexError:
-            await ctx.send("No one has been added to the list, please use points member add"
-                           " <Discord name or nickname> to do so first.")
+            await ctx.send(
+                "No one has been added to the list, please use points member add"
+                " <Discord name or nickname> to do so first."
+            )
             return
         if len(rows) > 15:
             n = 14
@@ -366,7 +411,7 @@ class Points:
             await ctx.send(box(tabulate(rows, headers=columns), lang="prolog"))
 
     @points.command(pass_context=True)
-    async def balance(self, ctx, name: discord.Member=None):
+    async def balance(self, ctx, name: discord.Member = None):
         """Allows to show the balance of a user. Defaults to author."""
         guild = ctx.guild
         author = ctx.author
@@ -375,28 +420,32 @@ class Points:
         if name is None:
             name = author
         if str(name.id) not in members.keys():
-            await ctx.send("{} was not found. "
-                           "Please add them first using points member add"
-                           " <Discord name or nickname>".format(name.display_name))
+            await ctx.send(
+                "{} was not found. "
+                "Please add them first using points member add"
+                " <Discord name or nickname>".format(name.display_name)
+            )
             return
         else:
             gain = members[str(name.id)]["Lifetime Gain"]
             loss = members[str(name.id)]["Lifetime Loss"]
             balance = members[str(name.id)]["Balance"]
-            await ctx.send("{} has a current balance of {} points. "
-                           "Their lifetime gain is {} and lifetime loss is {}."
-                           .format(name.display_name, balance, gain, loss))
+            await ctx.send(
+                "{} has a current balance of {} points. "
+                "Their lifetime gain is {} and lifetime loss is {}.".format(
+                    name.display_name, balance, gain, loss
+                )
+            )
 
     @points.group(pass_context=True)
     @checks.guildowner()
     async def keeper(self, ctx):
         """bookkeeper settings"""
-        if ctx.invoked_subcommand is None or \
-                isinstance(ctx.invoked_subcommand, commands.Group):
+        if ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group):
             await ctx.send_help()
 
     @keeper.command(name="add", pass_context=True)
-    async def __add(self, ctx, name: discord.Member=None):
+    async def __add(self, ctx, name: discord.Member = None):
         """Adds a bookkeeper to the bookkeeping list.
            This allows them to handle things such as adding/removing points/members and resetting the roster"""
         guild = ctx.guild
@@ -412,7 +461,7 @@ class Points:
         await ctx.send("{} has been registered as a bookkeeper.".format(name.display_name))
 
     @keeper.command(name="remove", pass_context=True)
-    async def __remove(self, ctx, name: discord.Member=None):
+    async def __remove(self, ctx, name: discord.Member = None):
         """Removes a bookkeeper from the bookkeeping list"""
         guild = ctx.guild
         author = ctx.author
@@ -420,12 +469,16 @@ class Points:
         if name is None:
             name = author
         if len(bookkeeper) < 1:
-            await ctx.send("Bookkeeper list is currently empty, add new bookkeepers using points keeper add"
-                           " <Discord name or nickname>")
+            await ctx.send(
+                "Bookkeeper list is currently empty, add new bookkeepers using points keeper add"
+                " <Discord name or nickname>"
+            )
             return
         if name.id not in bookkeeper:
-            await ctx.send("Keeper is not registered, please make sure the name or nickname is correctly spelled. "
-                           "You can check using points keeper list")
+            await ctx.send(
+                "Keeper is not registered, please make sure the name or nickname is correctly spelled. "
+                "You can check using points keeper list"
+            )
             return
         bookkeeper.remove(name.id)
         await self._points.guild(guild).bookkeeper.set(bookkeeper)
@@ -437,13 +490,22 @@ class Points:
         guild = ctx.guild
         bookkeeper = await self._points.guild(guild).bookkeeper()
         if len(bookkeeper) < 1:
-            await ctx.send("Bookkeeper list is currently empty, add new bookkeepers using points keeper add"
-                           " <Discord name or nickname>")
+            await ctx.send(
+                "Bookkeeper list is currently empty, add new bookkeepers using points keeper add"
+                " <Discord name or nickname>"
+            )
             return
         msg = ""
         for x in bookkeeper:
-            bookkeeper[bookkeeper.index(x)] = discord.utils.find(lambda N: N.id == x, guild.members).display_name
-        bookkeeper = sorted(bookkeeper, key=lambda item: (int(item.partition(' ')[0])
-                                                          if item[0].isdigit() else float('inf'), item))
+            bookkeeper[bookkeeper.index(x)] = discord.utils.find(
+                lambda N: N.id == x, guild.members
+            ).display_name
+        bookkeeper = sorted(
+            bookkeeper,
+            key=lambda item: (
+                int(item.partition(" ")[0]) if item[0].isdigit() else float("inf"),
+                item,
+            ),
+        )
         msg = ", ".join(bookkeeper[:-2] + [" and ".join(bookkeeper[-2:])])
         await ctx.send("Current bookkeepers assigned are: {}".format(msg))

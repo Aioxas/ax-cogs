@@ -1,17 +1,13 @@
 import numpy
 import discord
 
-from discord.ext import commands
-
-from redbot.core import Config, checks
+from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 
 
 class Lootbox:
 
-    default_guild_settings = {
-        "boxes": {}
-    }
+    default_guild_settings = {"boxes": {}}
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -26,7 +22,7 @@ class Lootbox:
             await ctx.send_help()
 
     @box.command(pass_context=True)
-    async def add(self, ctx, name: str, content: str, multi: int=None):
+    async def add(self, ctx, name: str, content: str, multi: int = None):
         """Adds items to a box
            Usage:
            winter = box name
@@ -54,8 +50,10 @@ class Lootbox:
             else:
                 counter += 1
                 continue
-        await ctx.send("Items added to {} box: {}. Items failed to add: "
-                       "{}".format(name, len(content) - counter, counter))
+        await ctx.send(
+            "Items added to {} box: {}. Items failed to add: "
+            "{}".format(name, len(content) - counter, counter)
+        )
         await self._lootbox.guild(guild).boxes.set(boxes)
 
     @box.command(pass_context=True)
@@ -66,7 +64,9 @@ class Lootbox:
         guild = ctx.guild
         boxes = await self._lootbox.guild(guild).boxes()
         if name in boxes:
-            await ctx.send("Box already exists, please use another name or use box edit to change the contents")
+            await ctx.send(
+                "Box already exists, please use another name or use box edit to change the contents"
+            )
             return
         if ", " in content:
             content = content.split(", ")
@@ -76,8 +76,10 @@ class Lootbox:
         for x in content:
             x = x.lower()
             boxes[name]["content"][x] = 0
-        await ctx.send("{} box has been added, it has {} items and outputs {}"
-                       " items".format(name, len(content), output))
+        await ctx.send(
+            "{} box has been added, it has {} items and outputs {}"
+            " items".format(name, len(content), output)
+        )
         await self._lootbox.guild(guild).boxes.set(boxes)
 
     @checks.mod_or_permissions()
@@ -94,15 +96,17 @@ class Lootbox:
            autumn = new name
            [p]box edit name winter autumn"""
         name = name.lower()
-        newname = newname.lower()
         guild = ctx.guild
         boxes = await self._lootbox.guild(guild).boxes()
+        if name not in boxes:
+            await ctx.send(
+                "Box doesn't exist, please make sure the spelling is correct and"
+                " that it's found in [p]box list"
+            )
+            return
+        newname = newname.lower()
         if newname in boxes:
             await ctx.send("Box already exists, please use another name")
-            return
-        if name not in boxes:
-            await ctx.send("Box doesn't exist, please make sure the spelling is correct and"
-                           " that it's found in [p]box list")
             return
         boxes[newname] = boxes.pop(name, None)
         await ctx.send("{} has been renamed to {}".format(name, newname))
@@ -113,11 +117,14 @@ class Lootbox:
         """Allows adjusting how many items
            come out of the simulated lootbox
            [p]box edit output 20"""
+        name = name.lower()
         guild = ctx.guild
         boxes = await self._lootbox.guild(guild).boxes()
         if name not in boxes:
-            await ctx.send("Box doesn't exist, please make sure the spelling is correct and"
-                           " that it's found in [p]box list")
+            await ctx.send(
+                "Box doesn't exist, please make sure the spelling is correct and"
+                " that it's found in [p]box list"
+            )
             return
         boxes[name]["output"] = output
         await ctx.send("{} box's output has changed to {}".format(name, output))
@@ -131,18 +138,23 @@ class Lootbox:
         guild = ctx.guild
         boxes = await self._lootbox.guild(guild).boxes()
         if name not in boxes:
-            await ctx.send("Please make sure that the name is spelled correctly and "
-                           "that you can find it in [p]box list")
+            await ctx.send(
+                "Please make sure that the name is spelled correctly and "
+                "that you can find it in [p]box list"
+            )
             return
-
         outputs = {}
         value = sum(list(boxes[name]["content"].values()))
-        pagenum = 0  # alternatively if you dont want this counter, check the length of everything in the str to make sure its less than your limit, same deal with charcount
+        pagenum = (
+            0
+        )  # alternatively if you dont want this counter, check the length of everything in the str to make sure its less than your limit, same deal with charcount
         outputs[pagenum] = []
         charcount = 0  # if for embeds, make sure this doesnt exceed 1024, for regular text then 2k
         box = boxes[name]["content"]
         for x in box:  # this for loop goes through the dict, x is the key
-            s = " {:.8%} chance of getting {}".format(box[x] / value, x)  # this is what each line will say, whatever item has that chance
+            s = " {:.8%} chance of getting {}".format(
+                box[x] / value, x
+            )  # this is what each line will say, whatever item has that chance
             charcount += len(s)
             if charcount <= 900:  # change to 2k if you arent doing embed fields
                 outputs[pagenum].append(s)
@@ -155,7 +167,10 @@ class Lootbox:
         embed = discord.Embed()
         embed.title = name
         for i in outputs:
-            embed.add_field(name="Set {}".format(i + 1), value=str(outputs[i])[1:-1].replace(" '", "").replace("'", "").replace(',', '\n'))
+            embed.add_field(
+                name="Set {}".format(i + 1),
+                value=str(outputs[i])[1:-1].replace(" '", "").replace("'", "").replace(",", "\n"),
+            )
 
         await ctx.send(embed=embed)
 
@@ -165,8 +180,10 @@ class Lootbox:
         guild = ctx.guild
         boxes = await self._lootbox.guild(guild).boxes()
         if len(boxes) < 1:
-            await ctx.send("No boxes have been created for this server yet, please create some using [p]box create"
-                           " first, thanks")
+            await ctx.send(
+                "No boxes have been created for this server yet, please create some using [p]box create"
+                " first, thanks"
+            )
             return
         boxes = boxes.keys()
         await ctx.send("Here are this server's boxes:\n{}".format("\n".join(boxes)))
@@ -179,48 +196,51 @@ class Lootbox:
         guild = ctx.guild
         boxes = await self._lootbox.guild(guild).boxes()
         if name not in boxes:
-            await ctx.send("Please make sure that the name is spelled correctly and "
-                           "that you can find it in [p]box list")
+            await ctx.send(
+                "Please make sure that the name is spelled correctly and "
+                "that you can find it in [p]box list"
+            )
             return
         boxes.pop(name, None)
         await self._lootbox.guild(guild).boxes.set(boxes)
         await ctx.send("Box has been removed")
 
     @box.command(pass_context=True)
-    async def sim(self, ctx, name: str, item: str=None):
+    async def sim(self, ctx, name: str, item: str = None):
         """Simulates the opening of a box (It won't be as accurate as an actual lootbox)
            If an item is always in a box, put the item name spelled correctly,
            with capitalization and all
            if you have Key in a box called winter do:
            [p]box sim winter Key"""
         name = name.lower()
-        if item is not None:
-            item = item.lower()
         guild = ctx.guild
         boxes = await self._lootbox.guild(guild).boxes()
         if name not in boxes:
-            await ctx.send("Please make sure that the name is spelled correctly and "
-                           "that you can find it in [p]box list")
+            await ctx.send(
+                "Please make sure that the name is spelled correctly and "
+                "that you can find it in [p]box list"
+            )
             return
         box = list(boxes[name]["content"].keys())
         output = boxes[name]["output"]
         values = list(boxes[name]["content"].values())
-        if item:
-            try:
-                y = box.index(item)
-                del box[y]
-                del values[y]
-                output = output - 1
-            except ValueError:
-                item = None
         value = sum(values)
         if sum(values) == 0:
-            ctx.send("add some items to your box first usin [p]box add <name> <content> <multi>")
+            ctx.send("add some items to your box first using [p]box add <name> <content> <multi>")
             return
         for x in range(len(values)):
             values[x] = values[x] / value
-        meow = numpy.random.choice(box, output, replace=False, p=values)
-        if item:
-            counter = numpy.random.randint(0, len(meow))
-            meow = numpy.insert(meow, counter, item)
-        await ctx.send("From {} box you got:\n{}".format(name, "\n".join(meow)))
+        picker = numpy.random.choice(box, output, replace=False, p=values)
+        if item is not None:
+            item = item.lower()
+            try:
+                idx = box.index(item)
+                del box[idx]
+                del values[idx]
+                output = output - 1
+            except ValueError:
+                item = None
+            if item:
+                counter = numpy.random.randint(0, len(picker))
+                picker = numpy.insert(picker, counter, item)
+        await ctx.send("From {} box you got:\n{}".format(name, "\n".join(picker)))

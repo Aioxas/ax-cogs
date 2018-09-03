@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "Aioxas",
+    "INSTALL_MSG" : "Thanks for installing my cog. \n[p]help Longcat to start using the cog.",
+    "NAME" : "longcat",
+    "SHORT" : "All hail Longcat. Based on canapin's longcat js command.",
+    "REQUIREMENTS" : ["Pillow"],
+    "TAGS" : ["Fun"],
+    "DESCRIPTION" : "Longcats man. Looooongcats"
+}

@@ -1,7 +1,6 @@
-from discord.ext import commands
+from redbot.core import commands
 from .trove import Trove
 
 
 def setup(bot: commands.Bot):
-    n = Trove(bot)
-    bot.add_cog(n)
+    bot.add_cog(Trove(bot))

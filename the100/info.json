@@ -1,0 +1,9 @@
+{
+    "AUTHOR" : "Aioxas",
+    "INSTALL_MSG" : "Thanks for installing my cog. \n[p]help The100 to start using the cog.",
+    "NAME" : "the100",
+    "SHORT" : "Bringing the100.io API to Discord",
+    "REQUIREMENTS" : [],
+    "TAGS" : ["Fun"],
+    "DESCRIPTION" : "Allows players to access the100.io API through Discord"
+}

@@ -1,8 +1,7 @@
 import discord
-from discord.ext import commands
 from random import choice as rand_choice
 
-from redbot.core import Config, checks
+from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
 
@@ -310,9 +309,7 @@ class Welcome:
             )
         else:
             await channel.send(
-                "I will now only send "
-                "welcome messages to the new user "
-                "as a DM".format(channel)
+                "I will now only send " "welcome messages to the new user " "as a DM"
             )
         await self.send_testing_msg(ctx)
         await self._welcome.guild(guild).WHISPER.set(settings)
