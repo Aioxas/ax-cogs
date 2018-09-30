@@ -13,9 +13,9 @@ class AdvancedGoogle:
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.regex = [
             re.compile(r",\"ou\":\"([^`]*?)\""),
-            re.compile(r"<h3 class=\"r\"><a href=\"\/url\?url=([^`]*?)&amp;"),
+            re.compile(r"<h3 class=\"r\"><a href=\"\/url\?q=([^`]*?)&amp;"),
             re.compile(r"<h3 class=\"r\"><a href=\"([^`]*?)\""),
-            re.compile(r"\/url?url="),
+            re.compile(r"\/url?q="),
         ]
 
     def __unload(self):
