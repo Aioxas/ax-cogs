@@ -92,13 +92,13 @@ class AdvancedGoogle:
             search_valid = str(ctx.message.content
                                [len(ctx.prefix + ctx.command.name) + 1:].lower())
         option = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'
         }
         regex = [
             re.compile(",\"ou\":\"([^`]*?)\""),
-            re.compile("<h3 class=\"r\"><a href=\"\/url\?url=([^`]*?)&amp;"),
+            re.compile("<h3 class=\"r\"><a href=\"\/url\?q=([^`]*?)&amp;"),
             re.compile("<h3 class=\"r\"><a href=\"([^`]*?)\""),
-            re.compile("\/url?url=")
+            re.compile("\/url?q=")
         ]
 
         # Start of Image
