@@ -5,8 +5,10 @@ from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Welcome:
+
+class Welcome(BaseCog):
     """Welcomes new members to the guild"""
 
     default_greeting = "Welcome {0.name} to {1.name}!"

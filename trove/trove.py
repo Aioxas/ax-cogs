@@ -6,8 +6,10 @@ from redbot.core import commands
 from redbot.core import Config, checks
 from redbot.core.bot import Red
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Trove:
+
+class Trove(BaseCog):
 
     default_global_settings = {"trovekeeper": [], "troves": {}}
 

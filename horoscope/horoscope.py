@@ -8,8 +8,10 @@ import discord
 from redbot.core.bot import Red
 from PIL import Image, ImageDraw, ImageFont
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Horoscope:
+
+class Horoscope(BaseCog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.path = data_manager.bundled_data_path(self) / "horoscope"

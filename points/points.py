@@ -9,8 +9,10 @@ from redbot.core.utils.chat_formatting import box
 
 from tabulate import tabulate
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Points:
+
+class Points(BaseCog):
     """Point System"""
 
     default_guild_settings = {"bookkeeper": [], "members": {}}
