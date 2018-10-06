@@ -7,8 +7,10 @@ from redbot.core.data_manager import bundled_data_path
 
 from redbot.core.bot import Red
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Longcat:
+
+class Longcat(BaseCog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.path = bundled_data_path(self)

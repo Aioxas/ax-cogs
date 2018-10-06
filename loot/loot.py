@@ -3,8 +3,10 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Loot:
+
+class Loot(BaseCog):
 
     default_guild_settings = {}
 

@@ -6,8 +6,10 @@ import urllib
 
 from redbot.core.bot import Red
 
+BaseCog = getattr(commands, "Cog", object)
 
-class AdvancedGoogle:
+
+class AdvancedGoogle(BaseCog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)

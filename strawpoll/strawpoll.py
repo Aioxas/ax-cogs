@@ -7,8 +7,10 @@ from redbot.core.utils.chat_formatting import box
 
 from redbot.core.bot import Red
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Strawpoll:
+
+class Strawpoll(BaseCog):
 
     default_guild_settings = {"multi": "false", "dupcheck": "normal", "captcha": "false"}
 
