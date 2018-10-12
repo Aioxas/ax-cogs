@@ -6,11 +6,20 @@ import urllib
 
 
 class AdvancedGoogle:
-
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
-        
+        self.option = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+        }
+        self.regex = [
+            re.compile(',"ou":"([^`]*?)"'),
+            re.compile('<h3 class="r"><a href="\/url\?q=([^`]*?)&amp;'),
+            re.compile('<h3 class="r"><a href="([^`]*?)"'),
+            re.compile("\/url?q="),
+            re.compile(r"<a href=\"([^`]*?)\">here<\/a>"),
+        ]
+
     def __unload(self):
         self.session.close()
 
@@ -33,21 +42,21 @@ class AdvancedGoogle:
         result = await self.get_response(ctx)
         await self.bot.say(result)
 
-    async def images(self, ctx, regex, option, images: bool=False):
+    async def images(self, ctx, regex, images: bool = False):
         uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
         num = 7
         if images:
             num = 8
         if isinstance(ctx, str):
-            quary = str(ctx[num-1:].lower())
+            quary = str(ctx[num - 1 :].lower())
         else:
-            quary = str(ctx.message.content
-                        [len(ctx.prefix+ctx.command.name)+num:].lower())
-        encode = urllib.parse.quote_plus(quary, encoding='utf-8',
-                                         errors='replace')
-        uir = uri+encode
+            quary = str(
+                ctx.message.content[len(ctx.prefix + ctx.command.name) + num :].lower()
+            )
+        encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
+        uir = uri + encode
         url = None
-        async with self.session.get(uir, headers=option) as resp:
+        async with self.session.get(uir, headers=self.option) as resp:
             test = await resp.content.read()
             unicoded = test.decode("unicode_escape")
             query_find = regex[0].findall(unicoded)
@@ -61,25 +70,26 @@ class AdvancedGoogle:
                 error = True
         return url, error
 
-    def parsed(self, find, regex, found: bool=True):
+    def parsed(self, find):
         find = find[:5]
-        for r in find:
-            if regex[3].search(r):
-                m = regex[3].search(r)
-                r = r[:m.start()] + r[m.end():]
-            r = self.unescape(r)
-        for i in range(len(find)):
+        for i, r in enumerate(find):
+            if self.regex[3].search(r):
+                m = self.regex[3].search(r)
+                find[i] = r[: m.start()] + r[m.end() :]
             if i == 0:
-                find[i] = "<" + find[i] + ">" + "\n\n**You might also want to check these out:**"
+                find[i] = "<{}>\n\n**You might also want to check these out:**".format(
+                    self.unescape(find[i])
+                )
             else:
-                find[i] = "<{}>".format(find[i])
+                find[i] = "<{}>".format(self.unescape(find[i]))
         return find
 
     def unescape(self, msg):
-        regex = ["<br \/>", "(?:\\\\[rn])", "(?:\\\\['])", "%25", "\(", "\)"]
-        subs = ["\n", "", "'", "%", "%28", "%29"]
-        for i in range(len(regex)):
-            sub = re.sub(regex[i], subs[i], msg)
+        msg = urllib.parse.unquote_plus(msg, encoding="utf-8", errors="replace")
+        regex = [r"<br \/>", r"(?:\\\\[rn])", r"(?:\\\\['])", r"%25", r"\(", r"\)"]
+        subs = [r"\n", r"", r"'", r"%", r"%28", r"%29"]
+        for i, reg in enumerate(regex):
+            sub = re.sub(reg, subs[i], msg)
             msg = sub
         return msg
 
@@ -88,18 +98,14 @@ class AdvancedGoogle:
             search_type = ctx.lower().split(" ")
             search_valid = str(ctx.lower())
         else:
-            search_type = ctx.message.content[len(ctx.prefix + ctx.command.name) + 1:].lower().split(" ")
-            search_valid = str(ctx.message.content
-                               [len(ctx.prefix + ctx.command.name) + 1:].lower())
-        option = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'
-        }
-        regex = [
-            re.compile(",\"ou\":\"([^`]*?)\""),
-            re.compile("<h3 class=\"r\"><a href=\"\/url\?q=([^`]*?)&amp;"),
-            re.compile("<h3 class=\"r\"><a href=\"([^`]*?)\""),
-            re.compile("\/url?q=")
-        ]
+            search_type = (
+                ctx.message.content[len(ctx.prefix + ctx.command.name) + 1 :]
+                .lower()
+                .split(" ")
+            )
+            search_valid = str(
+                ctx.message.content[len(ctx.prefix + ctx.command.name) + 1 :].lower()
+            )
 
         # Start of Image
         if search_type[0] == "image" or search_type[0] == "images":
@@ -109,9 +115,9 @@ class AdvancedGoogle:
                 return msg
             else:
                 if search_type[0] == "image":
-                    url, error = await self.images(ctx, regex, option)
+                    url, error = await self.images(ctx, regex)
                 elif search_type[0] == "images":
-                    url, error = await self.images(ctx, regex, option, images=True)
+                    url, error = await self.images(ctx, regex, images=True)
                 if url and not error:
                     return url
                 elif error:
@@ -127,41 +133,55 @@ class AdvancedGoogle:
                 if isinstance(ctx, str):
                     quary = str(ctx[5:].lower())
                 else:
-                    quary = str(ctx.message.content
-                                [len(ctx.prefix + ctx.command.name) + 6:].lower())
-                encode = urllib.parse.quote_plus(quary, encoding='utf-8',
-                                                 errors='replace')
+                    quary = str(
+                        ctx.message.content[
+                            len(ctx.prefix + ctx.command.name) + 6 :
+                        ].lower()
+                    )
+                encode = urllib.parse.quote_plus(
+                    quary, encoding="utf-8", errors="replace"
+                )
                 uir = uri + encode
                 return uir
                 # End of Maps
         # Start of generic search
         else:
-            uri = "https://www.google.com/search?hl=en&q="
+            url = "https://www.google.com"
+            uri = url + "/search?hl=en&q="
             if isinstance(ctx, str):
                 quary = str(ctx)
             else:
-                quary = str(ctx.message.content
-                            [len(ctx.prefix + ctx.command.name) + 1:])
-            encode = urllib.parse.quote_plus(quary, encoding='utf-8',
-                                             errors='replace')
+                quary = str(
+                    ctx.message.content[len(ctx.prefix + ctx.command.name) + 1 :]
+                )
+            encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
             uir = uri + encode
-            async with self.session.get(uir, headers=option) as resp:
-                test = str(await resp.content.read())
-                query_find = regex[1].findall(test)
-                if not query_find:
-                    query_find = regex[2].findall(test)
-                    try:
-                        query_find = self.parsed(query_find, regex)
-                    except IndexError:
-                        return IndexError
-                elif regex[3].search(query_find[0]):
-                    query_find = self.parsed(query_find, regex)
-                else:
-                    query_find = self.parsed(query_find, regex, found=False)
+            query_find = await self.result_returner(uir)
+            if isinstance(query_find, str):
+                query_find = await self.result_returner(
+                    url + query_find.replace("&amp;", "&")
+                )
             query_find = "\n".join(query_find)
             return query_find
-
             # End of generic search
+
+    async def result_returner(self, uir):
+        async with self.session.get(uir, headers=self.option) as resp:
+            test = str(await resp.content.read())
+            query_find = self.regex[4].findall(test)
+            if len(query_find) == 1:
+                return query_find[0]
+
+            query_find = self.regex[1].findall(test)
+            try:
+                query_find = self.parsed(query_find)
+            except IndexError:
+                query_find = self.regex[2].findall(test)
+                try:
+                    query_find = self.parsed(query_find)
+                except IndexError:
+                    return IndexError
+        return query_find
 
     async def on_message(self, message):
         author = message.author
