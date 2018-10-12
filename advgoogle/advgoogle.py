@@ -193,16 +193,16 @@ class AdvancedGoogle:
             return
         channel = message.channel
         str2find = "ok google "
-        text = message.clean_content
+        text = message.content
         if not text.lower().startswith(str2find):
             return
-        text = text.replace(str2find, "", 1)
+        message.content = message.content.replace(
+            str2find,
+            self.bot.settings.get_server_prefixes(message.server)[0] + "google ",
+            1,
+        )
         await self.bot.send_typing(channel)
-        try:
-            result = await self.get_response(text)
-            await self.bot.send_message(channel, result)
-        except IndexError:
-            await self.bot.send_message(channel, "Your search yielded no results.")
+        await self.bot.process_commands(message)
 
 
 def setup(bot):
