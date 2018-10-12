@@ -21,6 +21,9 @@ class AdvancedGoogle(BaseCog):
             re.compile(r"\/url?q="),
             re.compile(r"<a href=\"([^`]*?)\">here<\/a>"),
         ]
+        self.option = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+        }
 
     def __unload(self):
         asyncio.get_event_loop().create_task(self.session.close())
@@ -45,7 +48,7 @@ class AdvancedGoogle(BaseCog):
         result = await self.get_response(ctx)
         await ctx.send(result)
 
-    async def images(self, ctx, option, images: bool = False):
+    async def images(self, ctx, images: bool = False):
         uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
         num = 7
         if images:
@@ -59,7 +62,7 @@ class AdvancedGoogle(BaseCog):
         encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
         uir = uri + encode
         url = None
-        async with self.session.get(uir, headers=option) as resp:
+        async with self.session.get(uir, headers=self.option) as resp:
             test = await resp.content.read()
             unicoded = test.decode("unicode_escape")
             query_find = self.regex[0].findall(unicoded)
@@ -75,26 +78,20 @@ class AdvancedGoogle(BaseCog):
 
     def parsed(self, find):
         find = find[:5]
-        for r in find:
+        for i, r in enumerate(find):
             if self.regex[3].search(r):
                 m = self.regex[3].search(r)
-                r = r[: m.start()] + r[m.end() :]
-            find[find.index(r)] = self.unescape(
-                urllib.parse.unquote_plus(r, encoding="utf-8", errors="replace")
-            )
-        for i in range(len(find)):
+                find[i] = r[: m.start()] + r[m.end() :]
             if i == 0:
-                find[i] = (
-                    "<"
-                    + find[i]
-                    + ">"
-                    + "\n\n**You might also want to check these out:**"
+                find[i] = "<{}>\n\n**You might also want to check these out:**".format(
+                    self.unescape(find[i])
                 )
             else:
-                find[i] = "<{}>".format(find[i])
+                find[i] = "<{}>".format(self.unescape(find[i]))
         return find
 
     def unescape(self, msg):
+        msg = urllib.parse.unquote_plus(msg, encoding="utf-8", errors="replace")
         regex = [r"<br \/>", r"(?:\\\\[rn])", r"(?:\\\\['])", r"%25", r"\(", r"\)"]
         subs = [r"\n", r"", r"'", r"%", r"%28", r"%29"]
         for i, reg in enumerate(regex):
@@ -115,9 +112,6 @@ class AdvancedGoogle(BaseCog):
             search_valid = str(
                 ctx.message.content[len(ctx.prefix + ctx.command.name) + 1 :].lower()
             )
-        option = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
-        }
 
         # Start of Image
         if search_type[0] == "image" or search_type[0] == "images":
@@ -127,9 +121,9 @@ class AdvancedGoogle(BaseCog):
                 return msg
             else:
                 if search_type[0] == "image":
-                    url, error = await self.images(ctx, option)
+                    url, error = await self.images(ctx)
                 elif search_type[0] == "images":
-                    url, error = await self.images(ctx, option, images=True)
+                    url, error = await self.images(ctx, images=True)
                 if url and not error:
                     return url
                 elif error:
@@ -168,17 +162,17 @@ class AdvancedGoogle(BaseCog):
                 )
             encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
             uir = uri + encode
-            query_find = await self.result_returner(uir, option)
+            query_find = await self.result_returner(uir)
             if isinstance(query_find, str):
                 query_find = await self.result_returner(
-                    url + query_find.replace("&amp;", "&"), option
+                    url + query_find.replace("&amp;", "&")
                 )
             query_find = "\n".join(query_find)
             return query_find
             # End of generic search
 
-    async def result_returner(self, uir, option):
-        async with self.session.get(uir, headers=option) as resp:
+    async def result_returner(self, uir):
+        async with self.session.get(uir, headers=self.option) as resp:
             test = str(await resp.content.read())
             query_find = self.regex[4].findall(test)
             if len(query_find) == 1:
