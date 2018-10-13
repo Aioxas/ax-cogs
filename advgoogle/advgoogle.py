@@ -196,9 +196,10 @@ class AdvancedGoogle:
         text = message.content
         if not text.lower().startswith(str2find):
             return
+        prefix = self.bot.settings.prefixes if len(self.bot.settings.get_server_prefixes(message.server)) == 0 else self.bot.settings.get_server_prefixes(message.server)
         message.content = message.content.replace(
             str2find,
-            self.bot.settings.get_server_prefixes(message.server)[0] + "google ",
+            prefix[0] + "google ",
             1,
         )
         await self.bot.send_typing(channel)
