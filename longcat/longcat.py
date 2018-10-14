@@ -49,5 +49,5 @@ class Longcat(BaseCog):
         # I'm giving it a name based on a timestamp, this prevents future problems
         litter_box = str(time.time()).split(".")[0] + ".png"
         cat.save(self.path / litter_box)
-        await ctx.send(file=discord.File(self.path / litter_box))
+        await ctx.send(file=discord.File(fp=str((self.path / litter_box))))
         os.remove(self.path / litter_box)
