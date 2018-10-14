@@ -42,7 +42,7 @@ class AdvancedGoogle:
         result = await self.get_response(ctx)
         await self.bot.say(result)
 
-    async def images(self, ctx, regex, images: bool = False):
+    async def images(self, ctx, images: bool = False):
         uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
         num = 7
         if images:
@@ -59,7 +59,7 @@ class AdvancedGoogle:
         async with self.session.get(uir, headers=self.option) as resp:
             test = await resp.content.read()
             unicoded = test.decode("unicode_escape")
-            query_find = regex[0].findall(unicoded)
+            query_find = self.regex[0].findall(unicoded)
             try:
                 if images:
                     url = choice(query_find)
