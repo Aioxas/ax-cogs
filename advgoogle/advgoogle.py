@@ -115,9 +115,9 @@ class AdvancedGoogle:
                 return msg
             else:
                 if search_type[0] == "image":
-                    url, error = await self.images(ctx, regex)
+                    url, error = await self.images(ctx)
                 elif search_type[0] == "images":
-                    url, error = await self.images(ctx, regex, images=True)
+                    url, error = await self.images(ctx, images=True)
                 if url and not error:
                     return url
                 elif error:
