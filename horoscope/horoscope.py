@@ -86,8 +86,7 @@ class Horoscope(BaseCog):
             "chinese/horoscope-chinese-daily-today.aspx?sign=",
         }
         regex = [
-            r"<div class=\"horoscope-content\">\n<p><b class=\"date\">([^`]*?)<\/b> - ([^`]*?)<\/p>\n<p>\n<p class=\"mobile\">",
-            r"<div class=\"horoscope-content\">\n<p>\n<b class=\"date\">([^`]*?)<\/b> - ([^`]*?)<p class=\"mobile\">",
+            r"<strong class=\"date\">([^`]*?)<\/strong> - ([^`]*?)\n",
         ]
         try:
             horos = sign.split(", ")
@@ -123,7 +122,7 @@ class Horoscope(BaseCog):
                 uir = uri + sign_num
                 async with self.session.get(uir, headers=option) as resp:
                     test = str(await resp.text())
-                    msg = re.findall(regex[1], test)[0]
+                    msg = re.findall(regex[0], test)[0]
                     msg = msg[0] + " - " + msg[1]
                     if style == "love":
                         await ctx.send(
