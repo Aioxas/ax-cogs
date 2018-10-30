@@ -11,7 +11,6 @@ from redbot.core.bot import Red
 class Longcat:
     def __init__(self, bot: Red):
         self.bot = bot
-        self.path = bundled_data_path(self)
 
     # 42 is the answer to everything
     nreow = ["c" + "a" * i + "t" for i in range(2, 42)]
@@ -28,9 +27,9 @@ class Longcat:
         # now we grab the message itself, take out anything beyond the command itself
         # and substract one to length because of letter t
         len_cat = len(ctx.message.content.split()[0][len_prefix:-1]) - 1
-        the_cat = [Image.open(self.path / "butt.png")]
-        trunk = Image.open(self.path / "trunk.png")
-        head = Image.open(self.path / "head.png")
+        the_cat = [Image.open(bundled_data_path(self) / "butt.png")]
+        trunk = Image.open(bundled_data_path(self) / "trunk.png")
+        head = Image.open(bundled_data_path(self) / "head.png")
         i = 0
         while i < (len_cat):
             the_cat.append(trunk)
@@ -46,6 +45,6 @@ class Longcat:
             x_offset += im.size[0]
         # I'm giving it a name based on a timestamp, this prevents future problems
         litter_box = str(time.time()).split(".")[0] + ".png"
-        cat.save(self.path / litter_box)
-        await ctx.send(file=discord.File(self.path / litter_box))
-        os.remove(self.path / litter_box)
+        cat.save(bundled_data_path(self) / litter_box)
+        await ctx.send(file=discord.File(bundled_data_path(self) / litter_box))
+        os.remove(bundled_data_path(self) / litter_box)

@@ -1,4 +1,5 @@
-from redbot.core import commands, data_manager
+from redbot.core import commands
+from redbot.core.data_manager import bundled_data_path
 from redbot.core.utils.chat_formatting import box
 import aiohttp
 import html
@@ -12,7 +13,6 @@ from PIL import Image, ImageDraw, ImageFont
 class Horoscope:
     def __init__(self, bot: Red):
         self.bot = bot
-        self.path = data_manager.bundled_data_path(self) / "horoscope"
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     def __unload(self):
@@ -205,9 +205,9 @@ class Horoscope:
             info[0] = html.unescape(info[0])
             dailynum = re.findall(regex[5], test)
             self.fortune_process(fortune[0])
-            await ctx.send("Your fortune is:", file=discord.File(self.path / "cookie-edit.png"))
+            await ctx.send("Your fortune is:", file=discord.File(bundled_data_path(self) / "cookie-edit.png"))
             await ctx.send("\n" + title[1] + info[1] + "\n" + title[2] + dailynum[0])
-            os.remove(self.path / "cookie-edit.png")
+            os.remove(bundled_data_path(self) / "cookie-edit.png")
 
     async def file_check(self):
         urls = [
@@ -219,27 +219,27 @@ class Horoscope:
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)"
             " Gecko/20100101 Firefox/40.1"
         }
-        if os.path.exists(self.path / "cookie.png"):
+        if os.path.exists(bundled_data_path(self) / "cookie.png"):
             async with self.session.get(urls[0], headers=option) as resp:
                 test = await resp.read()
                 meow = False
-                with open(self.path / "cookie.png", "rb") as e:
+                with open(bundled_data_path(self) / "cookie.png", "rb") as e:
                     if len(test) != len(e.read()):
                         meow = True
                 if meow:
-                    with open(self.path / "cookie.png", "wb") as f:
+                    with open(bundled_data_path(self) / "cookie.png", "wb") as f:
                         f.write(test)
-        elif not os.path.exists(self.path / "cookie.png"):
+        elif not os.path.exists(bundled_data_path(self) / "cookie.png"):
             async with self.session.get(urls[0], headers=option) as resp:
                 test = await resp.read()
-                with open(self.path / "cookie.png", "wb") as f:
+                with open(bundled_data_path(self) / "cookie.png", "wb") as f:
                     f.write(test)
-        if not os.path.exists(self.path / "FortuneCookieNF.ttf"):
+        if not os.path.exists(bundled_data_path(self) / "FortuneCookieNF.ttf"):
             async with self.session.get(urls[1], headers=option) as resp:
                 test = await resp.read()
-                with open(self.path / "FortuneCookieNF.ttf", "wb") as f:
+                with open(bundled_data_path(self) / "FortuneCookieNF.ttf", "wb") as f:
                     f.write(test)
-    
+
     @commands.guild_only()
     @commands.command(name="font")
     @commands.cooldown(10, 60, commands.BucketType.user)
@@ -253,12 +253,12 @@ class Horoscope:
 
         if url is None:
             url = "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf"
-            if os.path.isfile(self.path / "FortuneCookieNF.ttf"):
+            if os.path.isfile(bundled_data_path(self) / "FortuneCookieNF.ttf"):
                 return
             else:
                 async with self.session.get(url, headers=option) as resp:
                     test = await resp.read()
-                    with open(self.path / "FortuneCookieNF.ttf", "wb") as f:
+                    with open(bundled_data_path(self) / "FortuneCookieNF.ttf", "wb") as f:
                         f.write(test)
         elif not url.endswith("ttf"):
             await ctx.send("This is not a .ttf font, please use a .ttf font. Thanks")
@@ -266,9 +266,9 @@ class Horoscope:
         await ctx.send("Font has been saved")
 
     def fortune_process(self, fortune):
-        img = Image.open(self.path / "cookie.png")
+        img = Image.open(bundled_data_path(self) / "cookie.png")
         draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype(self.path / "FortuneCookieNF.ttf", 15)
+        font = ImageFont.truetype(bundled_data_path(self) / "FortuneCookieNF.ttf", 15)
         line = fortune.split()
         sep = " "
         line1 = sep.join(line[:5])
@@ -277,4 +277,4 @@ class Horoscope:
         draw.text((134, 165), line1, (0, 0, 0), font=font, align="center")
         draw.text((134, 180), line2, (0, 0, 0), font=font, align="center")
         draw.text((134, 195), line3, (0, 0, 0), font=font, align="center")
-        img.save(self.path / "cookie-edit.png")
+        img.save(bundled_data_path(self) / "cookie-edit.png")
