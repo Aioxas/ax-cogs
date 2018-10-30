@@ -47,9 +47,9 @@ class AdvancedGoogle:
         if images:
             num = 8
         if isinstance(ctx, str):
-            quary = str(ctx[num - 1 :].lower())
+            quary = str(ctx[(num - 1):].lower())
         else:
-            quary = str(ctx.message.content[len(ctx.prefix + ctx.command.name) + num :].lower())
+            quary = str(ctx.message.content[(len(ctx.prefix + ctx.command.name) + num):].lower())
         encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
         uir = uri + encode
         url = None
@@ -72,7 +72,7 @@ class AdvancedGoogle:
         for r in find:
             if self.regex[3].search(r):
                 m = self.regex[3].search(r)
-                r = r[: m.start()] + r[m.end() :]
+                r = r[:m.start()] + r[m.end():]
             r = self.unescape(r)
         for i in range(len(find)):
             if i == 0:
@@ -95,10 +95,10 @@ class AdvancedGoogle:
             search_valid = str(ctx.lower())
         else:
             search_type = (
-                ctx.message.content[len(ctx.prefix + ctx.command.name) + 1 :].lower().split(" ")
+                ctx.message.content[(len(ctx.prefix + ctx.command.name) + 1):].lower().split(" ")
             )
             search_valid = str(
-                ctx.message.content[len(ctx.prefix + ctx.command.name) + 1 :].lower()
+                ctx.message.content[(len(ctx.prefix + ctx.command.name) + 1):].lower()
             )
         option = {
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1"
@@ -131,7 +131,7 @@ class AdvancedGoogle:
                     quary = str(ctx[5:].lower())
                 else:
                     quary = str(
-                        ctx.message.content[len(ctx.prefix + ctx.command.name) + 6 :].lower()
+                        ctx.message.content[(len(ctx.prefix + ctx.command.name) + 6):].lower()
                     )
                 encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
                 uir = uri + encode
@@ -143,7 +143,7 @@ class AdvancedGoogle:
             if isinstance(ctx, str):
                 quary = str(ctx)
             else:
-                quary = str(ctx.message.content[len(ctx.prefix + ctx.command.name) + 1 :])
+                quary = str(ctx.message.content[(len(ctx.prefix + ctx.command.name) + 1):])
             encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
             uir = uri + encode
             async with self.session.get(uir, headers=option) as resp:

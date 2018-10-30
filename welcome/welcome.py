@@ -3,7 +3,7 @@ from random import choice as rand_choice
 
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.chat_formatting import pagify, box
 
 
 class Welcome:
@@ -106,7 +106,7 @@ class Welcome:
         for c, m in enumerate(settings):
             msg += "  {}. {}\n".format(c, m)
         for page in pagify(msg, ["\n", " "], shorten_by=20):
-            await ctx.send("```\n{}\n```".format(page))
+            await ctx.send(box("\n{}\n".format(page)))
 
         def check(m):
             return author == m.author

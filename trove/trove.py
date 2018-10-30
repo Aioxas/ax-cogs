@@ -18,7 +18,7 @@ class Trove:
     async def permcheck(self, ctx):
         author = ctx.author
         trovekeeper = await self._trove.trovekeeper()
-        if author.id != self.bot.settings.owner:
+        if author.id != self.bot.owner:
             if author.id not in trovekeeper:
                 return False
             else:
@@ -175,7 +175,7 @@ class Trove:
         author = ctx.author
         trovekeeper = await self._trove.trovekeeper()
         if idi is None:
-            name = author # fix this and hackremove, find member object from name
+            name = author  # fix this and hackremove, find member object from name
         if idi in trovekeeper:
             await ctx.send("User is already registered as a trovekeeper")
         else:

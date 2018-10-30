@@ -1,6 +1,5 @@
 import aiohttp
 import asyncio
-import os
 
 from redbot.core import checks, commands, Config
 from redbot.core.utils.chat_formatting import box
@@ -32,7 +31,7 @@ class The100:
             data["role"] = None
             await self._the100.guild(ctx.guild).set(data)
             return False
-        if author.id != self.bot.settings.owner or author.id != guild.owner.id:
+        if author.id != self.bot.owner or author.id != guild.owner.id:
             if role not in [r.name.lower() for r in author.roles]:
                 return False
             else:

@@ -5,16 +5,10 @@ import discord
 import os
 import re
 
+from PIL import Image
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.data_manager import cog_data_path
-
-try:
-    from PIL import Image
-
-    PIL = True
-except:
-    PIL = False
 # if this seem hard to read/understand, remove the comments. Might make it easier
 
 
@@ -305,8 +299,8 @@ class Emote:
 
                         def check(m):
                             return (
-                                m.content.lower().strip() in ["yes", "no"]
-                                and m.author == ctx.author
+                                m.content.lower().strip() in ["yes", "no"] and
+                                m.author == ctx.author
                             )
 
                         try:
@@ -404,9 +398,9 @@ class Emote:
                             continue
                     await self._emote.guild(servs).emotes.set(server)
                     await ctx.send(
-                        str(count)
-                        + " Keywords have been successfully added to the image list in "
-                        + servs
+                        str(count) +
+                        " Keywords have been successfully added to the image list in " +
+                        servs
                     )
             else:
                 emotes = await self._emote.guild(guild).emotes()

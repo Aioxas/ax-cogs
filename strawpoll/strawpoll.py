@@ -1,5 +1,4 @@
 from redbot.core import Config, commands
-import os
 import aiohttp
 import json
 import html

@@ -26,7 +26,7 @@ class Geico:
         regex = [r"<p class=\"qt\">([^`]*?)<\/p>", r"<br \/>"]
         if num > 5:
             num = 5
-            await self.bot.reply("Heck naw brah. 5 is max. Any more and you get killed.")
+            await ctx.send("Heck naw brah. 5 is max. Any more and you get killed.")
         i = 0
         while i < num:
             async with self.session.get("http://bash.org/?random") as resp:
@@ -53,7 +53,7 @@ class Geico:
             number = int(author[1])
             if number > 5:
                 number = 5
-                await self.bot.reply("Heck naw brah. 5 is max. Any more and you get killed.")
+                await ctx.send("Heck naw brah. 5 is max. Any more and you get killed.")
             url = url + title.lower()[0] + "/" + title.lower().replace(" ", "_") + ".html"
             async with self.session.get(url) as resp:
                 test = str(await resp.text())
@@ -77,8 +77,3 @@ class Geico:
                 "Make sure the names are correctly written\n"
                 "[p]quotes Margaret Thatcher; 5\n[p]quotes Morgan Freeman; 5"
             )
-
-
-def setup(bot):
-    n = Geico(bot)
-    bot.add_cog(n)

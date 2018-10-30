@@ -205,7 +205,7 @@ class Points:
         def check(m):
             return author == m.author
 
-        confirmation = await self.bot.wait_for(timeout=15, check=check)
+        confirmation = await self.bot.wait_for("message", timeout=15, check=check)
         if confirmation is None:
             await ctx.send("Action canceled.")
             return
@@ -398,10 +398,10 @@ class Points:
             return
         if len(rows) > 15:
             n = 14
-            l = 15
+            line = 15
             m = 0
 
-            for x in range(n, len(rows) + 15, l):
+            for x in range(n, len(rows) + 15, line):
                 if x == n:
                     await ctx.send(box(tabulate(rows[:x], headers=columns), lang="prolog"))
                 else:
