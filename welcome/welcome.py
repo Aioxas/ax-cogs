@@ -5,8 +5,10 @@ from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import pagify, box
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Welcome:
+
+class Welcome(BaseCog):
     """Welcomes new members to the guild"""
 
     default_greeting = "Welcome {0.name} to {1.name}!"
@@ -30,7 +32,7 @@ class Welcome:
 
         self._welcome.register_guild(**self.default_guild_settings)
 
-    @commands.group()
+    @commands.group(autohelp=False)
     @commands.guild_only()
     @checks.admin_or_permissions(manage_guild=True)
     async def welcomeset(self, ctx):
@@ -74,11 +76,14 @@ class Welcome:
             {1.name} has a new member! {0.name}#{0.discriminator} - {0.id}
             Someone new joined! Who is it?! D: IS HE HERE TO HURT US?!"""
         guild = ctx.guild
+        try:
+            await self.send_testing_msg(ctx, msg=format_msg)
+        except KeyError:
+            return await ctx.send("Message failed. Check `[p]help welcomeset msg add` for the proper variables to use.")
         settings = await self._welcome.guild(guild).all()
         settings["GREETING"].append(format_msg)
         await self._welcome.guild(guild).set(settings)
         await ctx.send("Welcome message added for the guild.")
-        await self.send_testing_msg(ctx, msg=format_msg)
 
     @welcomeset_msg.command(name="addleave")
     async def welcomeset_leavemsg_add(self, ctx, *, format_msg):

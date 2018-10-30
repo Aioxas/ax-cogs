@@ -3,23 +3,30 @@ from random import choice
 import aiohttp
 import re
 import urllib
+import asyncio
 
 from redbot.core.bot import Red
 
+BaseCog = getattr(commands, "Cog", object)
 
-class AdvancedGoogle:
+
+class AdvancedGoogle(BaseCog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.regex = [
             re.compile(r",\"ou\":\"([^`]*?)\""),
-            re.compile(r"<h3 class=\"r\"><a href=\"\/url\?url=([^`]*?)&amp;"),
+            re.compile(r"<h3 class=\"r\"><a href=\"\/url\?q=([^`]*?)&amp;"),
             re.compile(r"<h3 class=\"r\"><a href=\"([^`]*?)\""),
-            re.compile(r"\/url?url="),
+            re.compile(r"\/url?q="),
+            re.compile(r"<a href=\"([^`]*?)\">here<\/a>"),
         ]
+        self.option = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+        }
 
     def __unload(self):
-        self.session.close()
+        asyncio.get_event_loop().create_task(self.session.close())
 
     @commands.command()
     @commands.guild_only()
@@ -41,7 +48,7 @@ class AdvancedGoogle:
         result = await self.get_response(ctx)
         await ctx.send(result)
 
-    async def images(self, ctx, option, images: bool = False):
+    async def images(self, ctx, images: bool = False):
         uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
         num = 7
         if images:
@@ -53,7 +60,7 @@ class AdvancedGoogle:
         encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
         uir = uri + encode
         url = None
-        async with self.session.get(uir, headers=option) as resp:
+        async with self.session.get(uir, headers=self.option) as resp:
             test = await resp.content.read()
             unicoded = test.decode("unicode_escape")
             query_find = self.regex[0].findall(unicoded)
@@ -67,21 +74,22 @@ class AdvancedGoogle:
                 error = True
         return url, error
 
-    def parsed(self, find, found: bool = True):
+    def parsed(self, find):
         find = find[:5]
-        for r in find:
+        for i, r in enumerate(find):
             if self.regex[3].search(r):
                 m = self.regex[3].search(r)
-                r = r[:m.start()] + r[m.end():]
-            r = self.unescape(r)
-        for i in range(len(find)):
+                find[i] = r[: m.start()] + r[m.end() :]
             if i == 0:
-                find[i] = "<" + find[i] + ">" + "\n\n**You might also want to check these out:**"
+                find[i] = "<{}>\n\n**You might also want to check these out:**".format(
+                    self.unescape(find[i])
+                )
             else:
-                find[i] = "<{}>".format(find[i])
+                find[i] = "<{}>".format(self.unescape(find[i]))
         return find
 
     def unescape(self, msg):
+        msg = urllib.parse.unquote_plus(msg, encoding="utf-8", errors="replace")
         regex = [r"<br \/>", r"(?:\\\\[rn])", r"(?:\\\\['])", r"%25", r"\(", r"\)"]
         subs = [r"\n", r"", r"'", r"%", r"%28", r"%29"]
         for i, reg in enumerate(regex):
@@ -95,14 +103,13 @@ class AdvancedGoogle:
             search_valid = str(ctx.lower())
         else:
             search_type = (
-                ctx.message.content[(len(ctx.prefix + ctx.command.name) + 1):].lower().split(" ")
+                ctx.message.content[len(ctx.prefix + ctx.command.name) + 1 :]
+                .lower()
+                .split(" ")
             )
             search_valid = str(
                 ctx.message.content[(len(ctx.prefix + ctx.command.name) + 1):].lower()
             )
-        option = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1"
-        }
 
         # Start of Image
         if search_type[0] == "image" or search_type[0] == "images":
@@ -112,9 +119,9 @@ class AdvancedGoogle:
                 return msg
             else:
                 if search_type[0] == "image":
-                    url, error = await self.images(ctx, option)
+                    url, error = await self.images(ctx)
                 elif search_type[0] == "images":
-                    url, error = await self.images(ctx, option, images=True)
+                    url, error = await self.images(ctx, images=True)
                 if url and not error:
                     return url
                 elif error:
@@ -131,50 +138,67 @@ class AdvancedGoogle:
                     quary = str(ctx[5:].lower())
                 else:
                     quary = str(
-                        ctx.message.content[(len(ctx.prefix + ctx.command.name) + 6):].lower()
+                        ctx.message.content[
+                            len(ctx.prefix + ctx.command.name) + 6 :
+                        ].lower()
                     )
-                encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
+                encode = urllib.parse.quote_plus(
+                    quary, encoding="utf-8", errors="replace"
+                )
                 uir = uri + encode
                 return uir
                 # End of Maps
         # Start of generic search
         else:
-            uri = "https://www.google.com/search?hl=en&q="
+            url = "https://www.google.com"
+            uri = url + "/search?hl=en&q="
             if isinstance(ctx, str):
                 quary = str(ctx)
             else:
-                quary = str(ctx.message.content[(len(ctx.prefix + ctx.command.name) + 1):])
+                quary = str(
+                    ctx.message.content[len(ctx.prefix + ctx.command.name) + 1 :]
+                )
             encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
             uir = uri + encode
-            async with self.session.get(uir, headers=option) as resp:
-                test = str(await resp.content.read())
-                query_find = self.regex[1].findall(test)
-                if not query_find:
-                    query_find = self.regex[2].findall(test)
-                    try:
-                        query_find = self.parsed(query_find)
-                    except IndexError:
-                        return IndexError
-                elif self.regex[3].search(query_find[0]):
-                    query_find = self.parsed(query_find)
-                else:
-                    query_find = self.parsed(query_find, found=False)
+            query_find = await self.result_returner(uir)
+            if isinstance(query_find, str):
+                query_find = await self.result_returner(
+                    url + query_find.replace("&amp;", "&")
+                )
             query_find = "\n".join(query_find)
             return query_find
-
             # End of generic search
 
+    async def result_returner(self, uir):
+        async with self.session.get(uir, headers=self.option) as resp:
+            test = str(await resp.content.read())
+            query_find = self.regex[4].findall(test)
+            if len(query_find) == 1:
+                return query_find[0]
+
+            query_find = self.regex[1].findall(test)
+            try:
+                query_find = self.parsed(query_find)
+            except IndexError:
+                query_find = self.regex[2].findall(test)
+                try:
+                    query_find = self.parsed(query_find)
+                except IndexError:
+                    return IndexError
+        return query_find
+
     async def on_message(self, message):
-        ctx = await self.bot.get_context(message)
+        ctx = await self.bot.get_context(message, cls=commands.Context)
         str2find = "ok google "
         text = message.clean_content.lower()
-        if not text.startswith(str2find):
+        if ctx.valid or not text.startswith(str2find):
             return
-        text = text.replace(str2find, "", 1)
+        if ctx.guild is None:
+            ctx.prefix = await ctx.bot.db.prefix()
+        else:
+            ctx.prefix = await ctx.bot.db.guild(ctx.guild).prefix()
+            if len(ctx.prefix) == 0:
+                ctx.prefix = await ctx.bot.db.prefix()
+        message.content = message.content.replace(str2find, ctx.prefix[0] + "google ")
         ctx.channel.typing()
-        try:
-            result = await ctx.invoke(self.google(ctx, text))
-            await ctx.channel.send(result)
-
-        except IndexError:
-            await ctx.channel.send("Your search yielded no results.")
+        await self.bot.process_commands(message)

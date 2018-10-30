@@ -4,8 +4,10 @@ import discord
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Lootbox:
+
+class Lootbox(BaseCog):
 
     default_guild_settings = {"boxes": {}}
 

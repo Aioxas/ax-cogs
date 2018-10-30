@@ -7,8 +7,10 @@ from redbot.core.data_manager import bundled_data_path
 
 from redbot.core.bot import Red
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Longcat:
+
+class Longcat(BaseCog):
     def __init__(self, bot: Red):
         self.bot = bot
 
@@ -46,5 +48,5 @@ class Longcat:
         # I'm giving it a name based on a timestamp, this prevents future problems
         litter_box = str(time.time()).split(".")[0] + ".png"
         cat.save(bundled_data_path(self) / litter_box)
-        await ctx.send(file=discord.File(bundled_data_path(self) / litter_box))
+        await ctx.send(file=discord.File(fp=str((bundled_data_path(self) / litter_box))))
         os.remove(bundled_data_path(self) / litter_box)

@@ -11,8 +11,10 @@ from redbot.core.bot import Red
 from redbot.core.data_manager import cog_data_path
 # if this seem hard to read/understand, remove the comments. Might make it easier
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Emote:
+
+class Emote(BaseCog):
     """Emote was made using irdumb's sadface cog's code.
 
     Owner is responsible for it's handling."""

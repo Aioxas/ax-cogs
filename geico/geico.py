@@ -8,8 +8,10 @@ import re
 
 from redbot.core.bot import Red
 
+BaseCog = getattr(commands, "Cog", object)
 
-class Geico:
+
+class Geico(BaseCog):
     """A 15-minute call could save you 15 percent (or more) on car insurance."""
 
     def __init__(self, bot: Red):

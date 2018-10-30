@@ -5,8 +5,10 @@ from redbot.core import checks, commands, Config
 from redbot.core.utils.chat_formatting import box
 from redbot.core.bot import Red
 
+BaseCog = getattr(commands, "Cog", object)
 
-class The100:
+
+class The100(BaseCog):
 
     default_guild_settings = {"token": None, "role": None}
 
