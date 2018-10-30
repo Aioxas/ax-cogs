@@ -4,6 +4,7 @@ from redbot.core.utils.chat_formatting import box
 import aiohttp
 import html
 import os
+import asyncio
 import re
 import discord
 from redbot.core.bot import Red
@@ -18,7 +19,7 @@ class Horoscope(BaseCog):
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     def __unload(self):
-        self.session.close()
+        asyncio.get_event_loop().create_task(self.session.close())
 
     @commands.guild_only()
     @commands.command(name="horo")
