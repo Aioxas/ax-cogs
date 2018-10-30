@@ -207,9 +207,9 @@ class Horoscope(BaseCog):
             info[0] = html.unescape(info[0])
             dailynum = re.findall(regex[5], test)
             self.fortune_process(fortune[0])
-            await ctx.send("Your fortune is:", file=discord.File(bundled_data_path(self) / "cookie-edit.png"))
+            await ctx.send("Your fortune is:", file=discord.File(str(bundled_data_path(self) / "cookie-edit.png")))
             await ctx.send("\n" + title[1] + info[1] + "\n" + title[2] + dailynum[0])
-            os.remove(bundled_data_path(self) / "cookie-edit.png")
+            os.remove(str(bundled_data_path(self) / "cookie-edit.png"))
 
     async def file_check(self):
         urls = [
@@ -221,25 +221,25 @@ class Horoscope(BaseCog):
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)"
             " Gecko/20100101 Firefox/40.1"
         }
-        if os.path.exists(bundled_data_path(self) / "cookie.png"):
+        if os.path.exists(str(bundled_data_path(self) / "cookie.png")):
             async with self.session.get(urls[0], headers=option) as resp:
                 test = await resp.read()
                 meow = False
-                with open(bundled_data_path(self) / "cookie.png", "rb") as e:
+                with open(str(bundled_data_path(self) / "cookie.png"), "rb") as e:
                     if len(test) != len(e.read()):
                         meow = True
                 if meow:
-                    with open(bundled_data_path(self) / "cookie.png", "wb") as f:
+                    with open(str(bundled_data_path(self) / "cookie.png"), "wb") as f:
                         f.write(test)
-        elif not os.path.exists(bundled_data_path(self) / "cookie.png"):
+        elif not os.path.exists(str(bundled_data_path(self) / "cookie.png")):
             async with self.session.get(urls[0], headers=option) as resp:
                 test = await resp.read()
-                with open(bundled_data_path(self) / "cookie.png", "wb") as f:
+                with open(str(bundled_data_path(self) / "cookie.png"), "wb") as f:
                     f.write(test)
-        if not os.path.exists(bundled_data_path(self) / "FortuneCookieNF.ttf"):
+        if not os.path.exists(str(bundled_data_path(self) / "FortuneCookieNF.ttf")):
             async with self.session.get(urls[1], headers=option) as resp:
                 test = await resp.read()
-                with open(bundled_data_path(self) / "FortuneCookieNF.ttf", "wb") as f:
+                with open(str(bundled_data_path(self) / "FortuneCookieNF.ttf"), "wb") as f:
                     f.write(test)
 
     @commands.guild_only()
@@ -255,12 +255,12 @@ class Horoscope(BaseCog):
 
         if url is None:
             url = "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf"
-            if os.path.isfile(bundled_data_path(self) / "FortuneCookieNF.ttf"):
+            if os.path.isfile(str(bundled_data_path(self) / "FortuneCookieNF.ttf")):
                 return
             else:
                 async with self.session.get(url, headers=option) as resp:
                     test = await resp.read()
-                    with open(bundled_data_path(self) / "FortuneCookieNF.ttf", "wb") as f:
+                    with open(str(bundled_data_path(self) / "FortuneCookieNF.ttf"), "wb") as f:
                         f.write(test)
         elif not url.endswith("ttf"):
             await ctx.send("This is not a .ttf font, please use a .ttf font. Thanks")
@@ -268,9 +268,9 @@ class Horoscope(BaseCog):
         await ctx.send("Font has been saved")
 
     def fortune_process(self, fortune):
-        img = Image.open(bundled_data_path(self) / "cookie.png")
+        img = Image.open(str(bundled_data_path(self) / "cookie.png"))
         draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype(bundled_data_path(self) / "FortuneCookieNF.ttf", 15)
+        font = ImageFont.truetype(str(bundled_data_path(self) / "FortuneCookieNF.ttf"), 15)
         line = fortune.split()
         sep = " "
         line1 = sep.join(line[:5])
@@ -279,4 +279,4 @@ class Horoscope(BaseCog):
         draw.text((134, 165), line1, (0, 0, 0), font=font, align="center")
         draw.text((134, 180), line2, (0, 0, 0), font=font, align="center")
         draw.text((134, 195), line3, (0, 0, 0), font=font, align="center")
-        img.save(bundled_data_path(self) / "cookie-edit.png")
+        img.save(str(bundled_data_path(self) / "cookie-edit.png"))
