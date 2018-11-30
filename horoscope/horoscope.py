@@ -55,8 +55,7 @@ class Horoscope:
                        "chinese": "http://www.horoscope.com/us/horoscopes/"
                        "chinese/horoscope-chinese-daily-today.aspx?sign="}
         regex = [
-         "<div class=\"horoscope-content\">\n<p><b class=\"date\">([^`]*?)<\/b> - ([^`]*?)<\/p>\n<p>\n<p class=\"mobile\">",
-         "<div class=\"horoscope-content\">\n<p>\n<b class=\"date\">([^`]*?)<\/b> - ([^`]*?)<p class=\"mobile\">"]
+         "<strong class=\"date\">([^`]*?)<\/strong> - ([^`]*?)\n"]
         subs = "\n\s*"
         try:
             horos = sign.split(', ')
@@ -93,7 +92,7 @@ class Horoscope:
                 uir = uri + sign_num
                 async with self.session.get(uir, headers=option) as resp:
                     test = str(await resp.text())
-                    msg = re.findall(regex[1], test)[0]
+                    msg = re.findall(regex[0], test)[0]
                     msg = msg[0] + " - " + msg[1]
                     if style == "love":
                         await self.bot.say("Today's love horoscope for "
