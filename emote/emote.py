@@ -40,8 +40,7 @@ class Emote(BaseCog):
     @commands.guild_only()
     async def emotes(self, ctx):
         """Emote settings"""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+        pass
 
     @emotes.command()
     @checks.mod_or_permissions(manage_roles=True)
