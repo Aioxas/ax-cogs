@@ -32,7 +32,6 @@ class AdvancedGoogle(BaseCog):
         self.bot.loop.create_task(self.session.close())
 
     @commands.command()
-    @commands.guild_only()
     async def googledebug(self, ctx, refID):
         """This command, given a refID
         will send html files to discord.
@@ -43,6 +42,8 @@ class AdvancedGoogle(BaseCog):
         if len(fileList) > 0:
             for filePath in fileList:
                 await ctx.send(file=discord.File(fp=filePath))
+        else:
+            await ctx.send("Please ensure that the refID provided is correct")
 
     @commands.command()
     @commands.guild_only()
