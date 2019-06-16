@@ -195,6 +195,8 @@ class AdvancedGoogle(BaseCog):
     async def result_returner(self, uir, refID, attempt):
         async with self.session.get(uir, headers=self.option) as resp:
             test = await resp.text()
+            if not os.path.exists(str(cog_data_path(self) / "debug")):
+                os.mkdir(str(cog_data_path(self) / "debug"))
             with open(str(cog_data_path(self) / "debug" / f"{refID}_{attempt}.html"), "w") as f:
                 f.write(test)
             query_find = self.regex[2].findall(test)
