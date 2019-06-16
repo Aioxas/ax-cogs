@@ -1,11 +1,16 @@
 from redbot.core import commands
+from redbot.core.bot import Red
+from redbot.core.data_manager import cog_data_path
+from redbot.core.utils.chat_formatting import inline
 from random import choice
 import aiohttp
+import asyncio
+import discord
+import glob
+import os
 import re
 import urllib
-import asyncio
-
-from redbot.core.bot import Red
+import uuid
 
 BaseCog = getattr(commands, "Cog", object)
 
@@ -16,17 +21,29 @@ class AdvancedGoogle(BaseCog):
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.regex = [
             re.compile(r",\"ou\":\"([^`]*?)\""),
-            re.compile(r"<h3 class=\"r\"><a href=\"\/url\?q=([^`]*?)&amp;"),
-            re.compile(r"<h3 class=\"r\"><a href=\"([^`]*?)\""),
-            re.compile(r"\/url?q="),
-            re.compile(r"<a href=\"([^`]*?)\">here<\/a>"),
+            re.compile(r"class=\"r\"><a href=\"([^`]*?)\""),
+            re.compile(r"Please click <a href=\"([^`]*?)\">here<\/a>"),
         ]
         self.option = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
         }
 
     def __unload(self):
-        asyncio.get_event_loop().create_task(self.session.close())
+        self.bot.loop.create_task(self.session.close())
+
+    @commands.command()
+    async def googledebug(self, ctx, refID):
+        """This command, given a refID
+        will send html files to discord.
+        This allows the cog creator to debug
+        the issue with the proper html"""
+        fPath = str((cog_data_path(self) / "debug" / f"{refID}_*.html"))
+        fileList = glob.glob(fPath)
+        if len(fileList) > 0:
+            for filePath in fileList:
+                await ctx.send(file=discord.File(fp=filePath))
+        else:
+            await ctx.send("Please ensure that the refID provided is correct")
 
     @commands.command()
     @commands.guild_only()
@@ -45,8 +62,18 @@ class AdvancedGoogle(BaseCog):
 
         Originally made by Kowlin https://github.com/Kowlin/refactored-cogs
         edited by Aioxas"""
-        result = await self.get_response(ctx)
-        await ctx.send(result)
+        result, refID = await self.get_response(ctx)
+        if refID != "" and result == "":
+            await ctx.send(f" No results returned. Run this command to get files to" + 
+                            f"send to the cog creator for further debugging:" +
+                             inline(f"{ctx.prefix}googledebug {refID}"))
+        else:
+            fPath = str((cog_data_path(self) / "debug" / f"{refID}_*.html"))
+            fileList = glob.glob(fPath)
+            if len(fileList) > 0:
+                for filePath in fileList:
+                    os.remove(filePath)
+            await ctx.send(result)
 
     async def images(self, ctx, images: bool = False):
         uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
@@ -75,11 +102,9 @@ class AdvancedGoogle(BaseCog):
         return url, error
 
     def parsed(self, find):
-        find = find[:5]
-        for i, r in enumerate(find):
-            if self.regex[3].search(r):
-                m = self.regex[3].search(r)
-                find[i] = r[: m.start()] + r[m.end() :]
+        if len(find) > 5:
+            find = find[:5]
+        for i, _ in enumerate(find):
             if i == 0:
                 find[i] = "<{}>\n\n**You might also want to check these out:**".format(
                     self.unescape(find[i])
@@ -90,11 +115,6 @@ class AdvancedGoogle(BaseCog):
 
     def unescape(self, msg):
         msg = urllib.parse.unquote_plus(msg, encoding="utf-8", errors="replace")
-        regex = [r"<br \/>", r"(?:\\\\[rn])", r"(?:\\\\['])", r"%25", r"\(", r"\)"]
-        subs = [r"\n", r"", r"'", r"%", r"%28", r"%29"]
-        for i, reg in enumerate(regex):
-            sub = re.sub(reg, subs[i], msg)
-            msg = sub
         return msg
 
     async def get_response(self, ctx):
@@ -116,22 +136,22 @@ class AdvancedGoogle(BaseCog):
             msg = "Your search yielded no results."
             if search_valid == "image" or search_valid == "images":
                 msg = "Please actually search something"
-                return msg
+                return msg, ""
             else:
                 if search_type[0] == "image":
                     url, error = await self.images(ctx)
                 elif search_type[0] == "images":
                     url, error = await self.images(ctx, images=True)
                 if url and not error:
-                    return url
+                    return url, ""
                 elif error:
-                    return msg
+                    return msg, ""
                     # End of Image
         # Start of Maps
         elif search_type[0] == "maps":
             if search_valid == "maps":
                 msg = "Please actually search something"
-                return msg
+                return msg, ""
             else:
                 uri = "https://www.google.com/maps/search/"
                 if isinstance(ctx, str):
@@ -146,7 +166,7 @@ class AdvancedGoogle(BaseCog):
                     quary, encoding="utf-8", errors="replace"
                 )
                 uir = uri + encode
-                return uir
+                return uir, ""
                 # End of Maps
         # Start of generic search
         else:
@@ -160,33 +180,34 @@ class AdvancedGoogle(BaseCog):
                 )
             encode = urllib.parse.quote_plus(quary, encoding="utf-8", errors="replace")
             uir = uri + encode
-            query_find = await self.result_returner(uir)
+            refID = uuid.uuid4()
+            query_find = await self.result_returner(uir, refID, "0")
             if isinstance(query_find, str):
                 query_find = await self.result_returner(
-                    url + query_find.replace("&amp;", "&")
+                    url + query_find.replace("&amp;", "&"),
+                    refID,
+                    "1"
                 )
             query_find = "\n".join(query_find)
-            return query_find
+            return query_find, refID
             # End of generic search
 
-    async def result_returner(self, uir):
+    async def result_returner(self, uir, refID, attempt):
         async with self.session.get(uir, headers=self.option) as resp:
-            test = str(await resp.content.read())
-            query_find = self.regex[4].findall(test)
-            if len(query_find) == 1:
+            test = await resp.text()
+            with open(str(cog_data_path(self) / "debug" / f"{refID}_{attempt}.html"), "w") as f:
+                f.write(test)
+            query_find = self.regex[2].findall(test)
+            result_find = self.regex[1].findall(test)
+            if len(query_find) == 1 and len(result_find) == 0:
                 return query_find[0]
-
-            query_find = self.regex[1].findall(test)
             try:
-                query_find = self.parsed(query_find)
+                result_find = self.parsed(result_find)
             except IndexError:
-                query_find = self.regex[2].findall(test)
-                try:
-                    query_find = self.parsed(query_find)
-                except IndexError:
-                    return IndexError
-        return query_find
+                return IndexError
+        return result_find
 
+    @commands.Cog.listener()
     async def on_message(self, message):
         ctx = await self.bot.get_context(message, cls=commands.Context)
         str2find = "ok google "
