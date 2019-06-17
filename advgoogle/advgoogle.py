@@ -4,7 +4,6 @@ import aiohttp
 import re
 import urllib
 
-
 class AdvancedGoogle:
     def __init__(self, bot):
         self.bot = bot
@@ -13,11 +12,9 @@ class AdvancedGoogle:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
         }
         self.regex = [
-            re.compile(',"ou":"([^`]*?)"'),
-            re.compile('<h3 class="r"><a href="\/url\?q=([^`]*?)&amp;'),
-            re.compile('<h3 class="r"><a href="([^`]*?)"'),
-            re.compile("\/url?q="),
-            re.compile(r"<a href=\"([^`]*?)\">here<\/a>"),
+            re.compile(r",\"ou\":\"([^`]*?)\""),
+            re.compile(r"class=\"r\"><a href=\"([^`]*?)\""),
+            re.compile(r"Please click <a href=\"([^`]*?)\">here<\/a>"),
         ]
 
     def __unload(self):
@@ -71,11 +68,9 @@ class AdvancedGoogle:
         return url, error
 
     def parsed(self, find):
-        find = find[:5]
-        for i, r in enumerate(find):
-            if self.regex[3].search(r):
-                m = self.regex[3].search(r)
-                find[i] = r[: m.start()] + r[m.end() :]
+        if len(find) > 5:
+            find = find[:5]
+        for i, _ in enumerate(find):
             if i == 0:
                 find[i] = "<{}>\n\n**You might also want to check these out:**".format(
                     self.unescape(find[i])
@@ -86,11 +81,6 @@ class AdvancedGoogle:
 
     def unescape(self, msg):
         msg = urllib.parse.unquote_plus(msg, encoding="utf-8", errors="replace")
-        regex = [r"<br \/>", r"(?:\\\\[rn])", r"(?:\\\\['])", r"%25", r"\(", r"\)"]
-        subs = [r"\n", r"", r"'", r"%", r"%28", r"%29"]
-        for i, reg in enumerate(regex):
-            sub = re.sub(reg, subs[i], msg)
-            msg = sub
         return msg
 
     async def get_response(self, ctx):
@@ -167,28 +157,21 @@ class AdvancedGoogle:
 
     async def result_returner(self, uir):
         async with self.session.get(uir, headers=self.option) as resp:
-            test = str(await resp.content.read())
-            query_find = self.regex[4].findall(test)
-            if len(query_find) == 1:
+            test = await resp.text()
+            query_find = self.regex[2].findall(test)
+            result_find = self.regex[1].findall(test)
+            if len(query_find) == 1 and len(result_find) == 0:
                 return query_find[0]
-
-            query_find = self.regex[1].findall(test)
             try:
-                query_find = self.parsed(query_find)
+                result_find = self.parsed(result_find)
             except IndexError:
-                query_find = self.regex[2].findall(test)
-                try:
-                    query_find = self.parsed(query_find)
-                except IndexError:
-                    return IndexError
-        return query_find
+                return IndexError
+        return result_find
 
     async def on_message(self, message):
         author = message.author
-
         if author == self.bot.user:
             return
-
         if not self.bot.user_allowed(message):
             return
         channel = message.channel
@@ -204,7 +187,6 @@ class AdvancedGoogle:
         )
         await self.bot.send_typing(channel)
         await self.bot.process_commands(message)
-
 
 def setup(bot):
     n = AdvancedGoogle(bot)
