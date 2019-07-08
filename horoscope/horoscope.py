@@ -95,7 +95,14 @@ class Horoscope(BaseCog):
             sign = horos[0].lower()
             if style == "chinese":
                 if sign not in chinese_signs:
-                    sign = self.getchinese_signs(int(sign)).lower()
+                    try:
+                        sign = self.getchinese_signs(int(sign)).lower()
+                    except ValueError:
+                        return await ctx.send(
+                            "The sign is not valid. Use Ox, Goat, Rat, Snake, "
+                            "Dragon, Tiger, Rabbit, Horse, Monkey, Rooster, "
+                            "Dog, or Pig."
+                        )
                 uri = horo_styles[style]
                 sign_num = str(chinese_signs.index(sign) + 1)
                 uir = uri + sign_num
