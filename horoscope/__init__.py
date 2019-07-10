@@ -4,5 +4,5 @@ from .horoscope import Horoscope
 
 def setup(bot: commands.Bot):
     n = Horoscope(bot)
-    data_manager.load_bundled_data(n, __file__)
+    data_manager.bundled_data_path(n)
     bot.add_cog(n)
