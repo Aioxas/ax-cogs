@@ -86,7 +86,7 @@ class Horoscope(BaseCog):
             "chinese/horoscope-chinese-daily-today.aspx?sign=",
         }
         regex = [
-            r"<strong class=\"date\">([^`]*?)<\/strong> - ([^`]*?)\n",
+            r"<strong( class=\"date\"|)>([^`]*?)<\/strong> - ([^`]*?)\n",
         ]
         try:
             horos = sign.split(", ")
