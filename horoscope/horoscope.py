@@ -50,9 +50,6 @@ class Horoscope(BaseCog):
             "Chrome/67.0.3396.99 Safari/537.36"
         }
         signs = [
-            "capricorn",
-            "aquarius",
-            "pisces",
             "aries",
             "taurus",
             "gemini",
@@ -62,6 +59,9 @@ class Horoscope(BaseCog):
             "libra",
             "scorpio",
             "sagittarius",
+            "capricorn",
+            "aquarius",
+            "pisces",
         ]
         chinese_signs = [
             "ox",
