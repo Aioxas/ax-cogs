@@ -114,7 +114,7 @@ class AdvancedGoogle(BaseCog):
         return find
 
     def unescape(self, msg):
-        msg = urllib.parse.unquote_plus(msg, encoding="utf-8", errors="replace")
+        msg = urllib.parse.unquote(msg, encoding="utf-8", errors="replace")
         return msg
 
     async def get_response(self, ctx):
@@ -197,7 +197,7 @@ class AdvancedGoogle(BaseCog):
             test = await resp.text()
             if not os.path.exists(str(cog_data_path(self) / "debug")):
                 os.mkdir(str(cog_data_path(self) / "debug"))
-            with open(str(cog_data_path(self) / "debug" / f"{refID}_{attempt}.html"), "w") as f:
+            with open(str(cog_data_path(self) / "debug" / f"{refID}_{attempt}.html"), "w", encoding="utf-8") as f:
                 f.write(test)
             query_find = self.regex[2].findall(test)
             result_find = self.regex[1].findall(test)
