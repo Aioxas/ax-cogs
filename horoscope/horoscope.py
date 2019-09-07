@@ -18,7 +18,7 @@ class Horoscope(BaseCog):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
-    def __unload(self):
+    def cog_unload(self):
         asyncio.get_event_loop().create_task(self.session.close())
 
     @commands.guild_only()
@@ -50,6 +50,9 @@ class Horoscope(BaseCog):
             "Chrome/67.0.3396.99 Safari/537.36"
         }
         signs = [
+            "capricorn",
+            "aquarius",
+            "pisces",
             "aries",
             "taurus",
             "gemini",
@@ -59,9 +62,6 @@ class Horoscope(BaseCog):
             "libra",
             "scorpio",
             "sagittarius",
-            "capricorn",
-            "aquarius",
-            "pisces",
         ]
         chinese_signs = [
             "ox",
@@ -78,12 +78,9 @@ class Horoscope(BaseCog):
             "pig",
         ]
         horo_styles = {
-            "love": "https://www.horoscope.com/us/horoscopes/"
-            "love/horoscope-love-daily-today.aspx?sign=",
-            "daily": "https://www.horoscope.com/us/horoscopes/"
-            "general/horoscope-general-daily-today.aspx?sign=",
-            "chinese": "http://www.horoscope.com/us/horoscopes/"
-            "chinese/horoscope-chinese-daily-today.aspx?sign=",
+            "love": "https://www.horoscope.com/us/horoscopes/love/horoscope-love-daily-today.aspx?sign=",
+            "daily": "https://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx?sign=",
+            "chinese": "http://www.horoscope.com/us/horoscopes/chinese/horoscope-chinese-daily-today.aspx?sign=",
         }
         regex = [
             r"<strong( class=\"date\"|)>([^`]*?)<\/strong> - ([^`]*?)\n",
@@ -102,7 +99,8 @@ class Horoscope(BaseCog):
                 async with self.session.get(uir, headers=option) as resp:
                     test = str(await resp.text())
                     msg = re.findall(regex[0], test)[0]
-                    msg = msg[0] + " - " + msg[1]
+                    msg_content = msg[2].replace("</p>", "")
+                    msg = msg_content + " - " + msg[1]
                     await ctx.send(
                         "Today's chinese horoscope for the one"
                         " born in the year of the {} is:\n".format(sign) + box(msg)
@@ -123,17 +121,18 @@ class Horoscope(BaseCog):
                 async with self.session.get(uir, headers=option) as resp:
                     test = str(await resp.text())
                     msg = re.findall(regex[0], test)[0]
-                    msg = msg[0] + " - " + msg[1]
+                    msg_content = msg[2].replace("</p>", "")
+                    msg = msg_content + " - " + msg[1]
                     if style == "love":
                         await ctx.send(
-                            "Today's love horoscope for " "**{}** is:\n".format(sign) + box(msg)
+                            "Today's love horoscope for **{}** is:\n".format(sign) + box(msg)
                         )
                     else:
                         await ctx.send(
-                            "Today's horoscope for " "**{}** is:\n".format(sign) + box(msg)
+                            "Today's horoscope for **{}** is:\n".format(sign) + box(msg)
                         )
 
-        except IndexError:
+        except (IndexError, ValueError):
             await ctx.send(
                 "Your search is not valid, please follow the "
                 "examples.\n[p]horo love, virgo\n[p]horo life,"
