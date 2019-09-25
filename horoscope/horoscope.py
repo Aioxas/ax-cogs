@@ -48,14 +48,11 @@ class Horoscope:
                  "aquarius", "pisces"]
         chinese_signs = ["ox", "goat", "rat", "snake", "dragon", "tiger",
                          "rabbit", "horse", "monkey", "rooster", "dog", "pig"]
-        horo_styles = {"love": "https://www.horoscope.com/us/horoscopes/"
-                       "love/horoscope-love-daily-today.aspx?sign=",
-                       "daily": "https://www.horoscope.com/us/horoscopes/"
-                       "general/horoscope-general-daily-today.aspx?sign=",
-                       "chinese": "http://www.horoscope.com/us/horoscopes/"
-                       "chinese/horoscope-chinese-daily-today.aspx?sign="}
+        horo_styles = {"love": "https://www.horoscope.com/us/horoscopes/love/horoscope-love-daily-today.aspx?sign=",
+                       "daily": "https://www.horoscope.com/us/horoscopes/general/horoscope-general-daily-today.aspx?sign=",
+                       "chinese": "http://www.horoscope.com/us/horoscopes/chinese/horoscope-chinese-daily-today.aspx?sign="}
         regex = [
-         "<strong class=\"date\">([^`]*?)<\/strong> - ([^`]*?)\n"]
+         "<strong( class=\"date\"|)>([^`]*?)<\/strong> - ([^`]*?)\n"]
         subs = "\n\s*"
         try:
             horos = sign.split(', ')
@@ -71,7 +68,8 @@ class Horoscope:
                 async with self.session.get(uir, headers=option) as resp:
                     test = str(await resp.text())
                     msg = re.findall(regex[0], test)[0]
-                    msg = msg[0] + " - " + msg[1]
+                    msg_content = msg[2].replace("</p>", "")
+                    msg = msg_content + " - " + msg[1]
                     await self.bot.say("Today's chinese horoscope for the one"
                                        " born in the year of the {} is:\n"
                                        .format(sign) + box(msg))
@@ -93,17 +91,16 @@ class Horoscope:
                 async with self.session.get(uir, headers=option) as resp:
                     test = str(await resp.text())
                     msg = re.findall(regex[0], test)[0]
-                    msg = msg[0] + " - " + msg[1]
+                    msg_content = msg[2].replace("</p>", "")
+                    msg = msg_content + " - " + msg[1]
                     if style == "love":
-                        await self.bot.say("Today's love horoscope for "
-                                           "**{}** is:\n"
+                        await self.bot.say("Today's love horoscope for **{}** is:\n"
                                            .format(sign) + box(msg))
                     else:
-                        await self.bot.say("Today's horoscope for "
-                                           "**{}** is:\n"
+                        await self.bot.say("Today's horoscope for **{}** is:\n"
                                            .format(sign) + box(msg))
 
-        except IndexError:
+        except (IndexError, ValueError):
             await self.bot.say("Your search is not valid, please follow the "
                                "examples.\n[p]horo love, virgo\n[p]horo life,"
                                " pisces\n[p]horo whatever, sagittarius"
