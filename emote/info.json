@@ -1,5 +1,5 @@
 {
-    "author": "Aioxas",
+    "author": ["Aioxas"],
     "install_msg": "Thanks for installing my cog. \n[p]help Emote to start using the cog.",
     "name": "emote",
     "short": "Local emote summoning, has the ability to add, remove, or list emotes. Based on irdumb's sadface cog",
