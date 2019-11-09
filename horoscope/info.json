@@ -1,5 +1,5 @@
 {
-    "author": "Aioxas",
+    "author": ["Aioxas"],
     "install_msg": "Thanks for installing my cog. \n[p]help Horoscope should be enough. If not [p]help horo, [p]help tsujiura should.",
     "name": "horoscope",
     "short": "Zodiac and Chinese Horoscope and Fortune Cookie cog",
