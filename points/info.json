@@ -1,5 +1,5 @@
 {
-    "author": "Aioxas",
+    "author": ["Aioxas"],
     "install_msg": "Thanks for installing this cog.",
     "name": "Points",
     "short": "Keep a tally of points",
