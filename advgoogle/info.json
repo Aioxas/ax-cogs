@@ -1,5 +1,5 @@
 {
-    "author": "Kowlin and Aioxas",
+    "author": ["Kowlin", "Aioxas"],
     "install_msg": "Thanks for installing this. \nYou can start your search by doing [p]google or saying \"ok google cats\" without quotations",
     "name": "Advanced Google",
     "short": "Retrieves results from Google",
