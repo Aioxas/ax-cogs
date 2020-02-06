@@ -20,8 +20,10 @@ class AdvancedGoogle(BaseCog):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.regex = [
-            re.compile(r",\"ou\":\"([^`]*?)\""),
-            re.compile(r"class=\"r\"><a href=\"([^`]*?)\""),
+            #re.compile(r",\"ou\":\"([^`]*?)\""),
+            re.compile(r"style=\"border:1px solid #ccc;padding:1px\" src=\"([^`]*?)\""),
+            #re.compile(r"class=\"r\"><a href=\"([^`]*?)\""),
+            re.compile(r"<div class=\"kCrYT\"><a href=\"\/url\?q=([^`]*?)&amp;sa=U"),
             re.compile(r"Please click <a href=\"([^`]*?)\">here<\/a>"),
         ]
         self.option = {
@@ -90,11 +92,26 @@ class AdvancedGoogle(BaseCog):
         async with self.session.get(uir, headers=self.option) as resp:
             test = await resp.content.read()
             unicoded = test.decode("unicode_escape")
-            query_find = self.regex[0].findall(unicoded)
+            if len(self.regex[2].findall(unicoded)) > 0:
+                result_find = self.regex[2].findall(unicoded)
+                async with self.session.get("https://www.google.com" + result_find[0].replace("&amp;", "&"), headers=self.option) as respo:
+                        test2 = await respo.content.read()
+                        unicoded2 = test2.decode("unicode_escape")
+                        query_find = self.regex[0].findall(unicoded2)
+                        try:
+                            if images:
+                                url = choice(query_find)
+                            else:
+                                url = query_find[0]
+                            error = False
+                        except IndexError:
+                            error = True
+            else:
+                query_find = self.regex[0].findall(unicoded)
             try:
                 if images:
                     url = choice(query_find)
-                elif not images:
+                else:
                     url = query_find[0]
                 error = False
             except IndexError:
