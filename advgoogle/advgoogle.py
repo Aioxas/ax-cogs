@@ -20,11 +20,9 @@ class AdvancedGoogle(BaseCog):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.regex = [
-            #re.compile(r",\"ou\":\"([^`]*?)\""),
             re.compile(r"style=\"border:1px solid #ccc;padding:1px\" src=\"([^`]*?)\""),
-            #re.compile(r"class=\"r\"><a href=\"([^`]*?)\""),
-            re.compile(r"<div class=\"kCrYT\"><a href=\"\/url\?q=([^`]*?)&amp;sa=U"),
-            re.compile(r"Please click <a href=\"([^`]*?)\">here<\/a>"),
+            re.compile(r"<div class=\"kCrYT\"><a href=\"/url?q=([^`]*?)&amp;sa=U"),
+            re.compile(r"Please click <a href=\"([^`]*?)\">here</a>"),
         ]
         self.option = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
