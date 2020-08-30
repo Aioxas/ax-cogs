@@ -104,7 +104,7 @@ class Horoscope(BaseCog):
                 sign_num = str(chinese_signs.index(sign) + 1)
                 uir = uri + sign_num
                 async with self.session.get(uir, headers=option) as resp:
-                    test = str(await resp.text())
+                    test = str(await resp.text('ISO-8859-1'))
                     msg = re.findall(regex[0], test)[0]
                     msg_content = msg[2].replace("</p>", "")
                     msg = msg_content + " - " + msg[1]
@@ -126,7 +126,7 @@ class Horoscope(BaseCog):
                 sign = sign.title()
                 uir = uri + sign_num
                 async with self.session.get(uir, headers=option) as resp:
-                    test = str(await resp.text())
+                    test = str(await resp.text('ISO-8859-1'))
                     msg = re.findall(regex[0], test)[0]
                     msg_content = msg[2].replace("</p>", "")
                     msg = msg_content + " - " + msg[1]
@@ -203,7 +203,7 @@ class Horoscope(BaseCog):
         url = "http://www.fortunecookiemessage.com"
         await self.file_check()
         async with self.session.get(url, headers={"encoding": "utf-8"}) as resp:
-            test = str(await resp.text())
+            test = str(await resp.text('ISO-8859-1'))
             fortune = re.findall(regex[0], test)
             fortest = re.match("<p>", fortune[0])
             if fortest is not None:
