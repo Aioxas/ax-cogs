@@ -151,7 +151,7 @@ class AdvancedGoogle(commands.Cog):
             uir = self.quote(uri, quary)
             refID = str(uuid4())
             query_find = await self.result_returner(uir, refID, 0)
-            if not ("\n" in query_find) and query_find != "":
+            if "\n" not in query_find and query_find != "":
                 query_find = await self.result_returner(
                     uri + query_find.replace("&amp;", "&"), refID, 1
                 )
