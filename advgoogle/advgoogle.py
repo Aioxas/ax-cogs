@@ -19,9 +19,9 @@ class AdvancedGoogle(commands.Cog):
         self.bot = bot
         self.session = ClientSession(loop=self.bot.loop)
         self.regex = [
-            compile(r",\"ou\":\"([^`]*?)\""),
-            compile(r"class=\"r\"><a href=\"([^`]*?)\""),
-            compile(r"Please click <a href=\"([^`]*?)\">here<\/a>"),
+            compile(r"style=\"border:1px solid #ccc;padding:1px\" src=\"([^`]*?)\""),
+            compile(r"<div class=\"kCrYT\"><a href=\"/url?q=([^`]*?)&amp;sa=U"),
+            compile(r"Please click <a href=\"([^`]*?)\">here</a>"),
             compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"),
         ]
         self.option = {
@@ -97,6 +97,10 @@ class AdvancedGoogle(commands.Cog):
         async with self.session.get(uir, headers=self.option) as resp:
             test = await resp.content.read()
             unicoded = test.decode("unicode_escape")
+            if len(result_find := self.regex[2].findall(unicoded)) > 0:
+                async with self.session.get("https://www.google.com" + result_find[0].replace("&amp;", "&"), headers=self.option) as resp2:
+                    test2 = await resp2.content.read()
+                    unicoded = test2.decode("unicode_escape")
             query_find = self.regex[0].findall(unicoded)
             try:
                 url = query_find[0]
