@@ -62,7 +62,7 @@ class AdvancedGoogle(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.cooldown(5, 60, commands.BucketType.channel)
-    async def google(self, ctx: commands.Context, text: str):
+    async def google(self, ctx: commands.Context, *, text: str):
         """Its google, you search with it.
         Example: google A magical pug
 
