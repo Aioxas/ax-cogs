@@ -1,11 +1,29 @@
 {
-    "author": ["Kowlin", "Aioxas"],
+    "author": [
+        "Kowlin",
+        "Aioxas"
+    ],
+    "description": "Retrieves Google or Google Image search results.\nOriginally made by Kowlin from https://github.com/Kowlin/Sentinel . \nEdited by yours truly.",
+    "disabled": false,
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users.",
     "install_msg": "Thanks for installing this. \nYou can start your search by doing [p]google or saying \"ok google cats\" without quotations",
+    "hidden": false,
+    "max_bot_version": "0.0.0",
+    "min_bot_version": "3.1.8",
+    "min_python_version": [
+        3,
+        7,
+        2
+    ],
     "name": "Advanced Google",
+    "permissions": [
+        "send_messages"
+    ],
+    "requirements": [],
+    "required_cogs": [],
     "short": "Retrieves results from Google",
     "tags": [
         "Utilities"
     ],
-    "description": "Retrieves Google or Google Image search results.\nOriginally made by Kowlin from https://github.com/Kowlin/refactored-cogs . \nI took the liberty of editing some of his code to make it",
     "type": "COG"
 }
