@@ -130,7 +130,6 @@ class AdvancedGoogle(commands.Cog):
     async def get_response(self, text: str) -> Tuple[str, str]:
         search_query = str(text.lower()).split(" ")
         search_valid = search_query[0]
-        quary = " ".join(search_query[1:]).lower()
         if len(search_query) == 1 and search_valid in ["images", "image", "maps"]:
             msg = "Please actually search something"
             return msg, ""
@@ -144,11 +143,12 @@ class AdvancedGoogle(commands.Cog):
                 return msg, ""  # End of Image
         elif search_valid == "maps":  # Start of Maps
             uri = "https://www.google.com/maps/search/"
+            quary = " ".join(search_query[1:]).lower()
             uir = self.quote(uri, quary)
             return uir, ""  # End of Maps
         else:  # Start of generic search
             uri = "https://www.google.com/search?hl=en&q="
-            uir = self.quote(uri, quary)
+            uir = self.quote(uri, text)
             refID = str(uuid4())
             query_find = await self.result_returner(uir, refID, 0)
             if "\n" not in query_find and query_find != "":
