@@ -119,8 +119,8 @@ class AdvancedGoogle(commands.Cog):
             async with self.session.get(
                 url,
                 headers=self.option,
-            ) as resp2:
-                unicoded = await resp2.text()
+            ) as resp:
+                unicoded = await resp.text()
         query_find = self.regex[0].findall(unicoded)
         query_find2 = [
             result.encode("latin1").decode("unicode_escape")
