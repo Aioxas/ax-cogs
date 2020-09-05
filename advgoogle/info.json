@@ -20,7 +20,7 @@
         "send_messages"
     ],
     "requirements": [],
-    "required_cogs": [],
+    "required_cogs": {},
     "short": "Retrieves results from Google",
     "tags": [
         "Utilities"

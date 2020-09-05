@@ -1,4 +1,4 @@
-from redbot.core import commands, checks
+from redbot.core import checks, commands
 from redbot.core.bot import Red
 from redbot.core.data_manager import cog_data_path
 from redbot.core.utils.chat_formatting import inline
@@ -10,7 +10,7 @@ from random import choice
 from re import compile
 from typing import List, Tuple
 from urllib.parse import quote_plus, unquote
-from os import remove, path, mkdir
+from os import mkdir, path, remove
 from uuid import uuid4
 
 
@@ -19,10 +19,14 @@ class AdvancedGoogle(commands.Cog):
         self.bot = bot
         self.session = ClientSession(loop=self.bot.loop)
         self.regex = [
-            compile(r"style=\"border:1px solid #ccc;padding:1px\" src=\"([^`]*?)\""),
-            compile(r"<div class=\"kCrYT\"><a href=\"/url?q=([^`]*?)&amp;sa=U"),
+            compile(r",\"ou\":\"([^`]*?)\""),
+            compile(r"class=\"r\"><a href=\"([^`]*?)\""),
             compile(r"Please click <a href=\"([^`]*?)\">here</a>"),
-            compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"),
+            compile(r"\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}"),
+            compile(r",\[\"([^`]*?)\",\d{1,4},\d{1,4}\]"),
+            compile(r"alt=\"\" src=\"([^`]*?)\""),
+            # compile(r"style=\"border:1px solid #ccc;padding:1px\" src=\"([^`]*?)\""),
+            # compile(r"<div class=\"kCrYT\"><a href=\"/url?q=([^`]*?)&amp;sa=U"),
         ]
         self.option = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
@@ -32,7 +36,7 @@ class AdvancedGoogle(commands.Cog):
 
     @checks.is_owner()
     @commands.command()
-    async def googledebug(self, ctx: commands.Context, refID: str):
+    async def googledebug(self, ctx: commands.Context, refID: str) -> None:
         """This command, given a refID
         will send html files to discord.
         This allows the cog creator to debug
@@ -49,7 +53,7 @@ class AdvancedGoogle(commands.Cog):
 
     @checks.is_owner()
     @commands.command()
-    async def googledebugpurge(self, ctx: commands.Context):
+    async def googledebugpurge(self, ctx: commands.Context) -> None:
         """This command purges the advgoogle/debug folder"""
         fPath = str((cog_data_path(self) / "debug" / "*.html"))
         fileList = glob(fPath)
@@ -62,7 +66,7 @@ class AdvancedGoogle(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.cooldown(5, 60, commands.BucketType.channel)
-    async def google(self, ctx: commands.Context, *, text: str):
+    async def google(self, ctx: commands.Context, *, text: str) -> None:
         """Its google, you search with it.
         Example: google A magical pug
 
@@ -90,25 +94,54 @@ class AdvancedGoogle(commands.Cog):
                 remove(filePath)
         await ctx.send(result)
 
-    async def images(self, text: str, images: bool = False):
+    async def images(self, text: str, images: bool = False) -> Tuple[str, bool]:
         uri = "https://www.google.com/search?hl=en&tbm=isch&tbs=isz:m&q="
         quary = str(text.lower())
         uir = self.quote(uri, quary)
         async with self.session.get(uir, headers=self.option) as resp:
-            test = await resp.content.read()
-            unicoded = test.decode("unicode_escape")
-            if len(result_find := self.regex[2].findall(unicoded)) > 0:
-                async with self.session.get("https://www.google.com" + result_find[0].replace("&amp;", "&"), headers=self.option) as resp2:
-                    test2 = await resp2.content.read()
-                    unicoded = test2.decode("unicode_escape")
-            query_find = self.regex[0].findall(unicoded)
+            unicoded = await resp.text()
+            unicoded, query_find = await self.image_retrier(unicoded)
+            for _ in range(0, 3):
+                if len(query_find) > 0:
+                    break
+                unicoded, query_find = await self.image_retrier(unicoded)
             try:
-                url = query_find[0]
-                if images:
-                    url = choice(query_find)
+                url = choice(query_find) if images else query_find[0]
+                return url, False
             except IndexError:
-                error = True
-            return url, error
+                return None, True
+
+    async def image_retrier(self, unicoded: str) -> Tuple[str, List[str]]:
+        url = "https://www.google.com"
+        if len(result_find := self.regex[2].findall(unicoded)) > 0:
+            url = url + result_find[0].replace("&amp;", "&")
+        if url != "https://www.google.com":
+            async with self.session.get(
+                url,
+                headers=self.option,
+            ) as resp2:
+                unicoded = await resp2.text()
+        query_find = self.regex[0].findall(unicoded)
+        query_find2 = [
+            result.encode("latin1").decode("unicode_escape")
+            for result in [
+                result
+                for result in self.regex[4].findall(unicoded)
+                if "gstatic" not in result
+            ]
+            if result.endswith(".jpg")
+            or result.endswith(".jpeg")
+            or result.endswith(".png")
+        ]
+        query_find3 = self.regex[5].findall(unicoded)
+        return (
+            unicoded,
+            query_find
+            if len(query_find) > 0
+            else query_find2
+            if len(query_find2) > 0
+            else query_find3,
+        )
 
     def parsed(self, find: List[str]) -> List[str]:
         find = find[:5] if len(find) > 5 else find
@@ -147,14 +180,14 @@ class AdvancedGoogle(commands.Cog):
             uir = self.quote(uri, quary)
             return uir, ""  # End of Maps
         else:  # Start of generic search
-            uri = "https://www.google.com/search?hl=en&q="
+            url = "https://www.google.com"
+            uri = url + "/search?hl=en&q="
             uir = self.quote(uri, text)
             refID = str(uuid4())
             query_find = await self.result_returner(uir, refID, 0)
             if "\n" not in query_find and query_find != "":
-                query_find = await self.result_returner(
-                    uri + query_find.replace("&amp;", "&"), refID, 1
-                )
+                uir = url + query_find.replace("&amp;", "&")
+                query_find = await self.result_returner(uir, refID, 1)
             return query_find, refID  # End of generic search
 
     async def result_returner(self, uir: str, refID: str, attempt: int) -> str:
@@ -183,14 +216,14 @@ class AdvancedGoogle(commands.Cog):
                 return ""
 
     @commands.Cog.listener()
-    async def on_message(self, message: Message):
+    async def on_message(self, message: Message) -> None:
         ctx = await self.bot.get_context(message, cls=commands.Context)
         replacer_string = "ok "
         str2find = replacer_string + "google "
         text = message.clean_content.lower()
         if ctx.valid or not text.startswith(str2find):
             return
-        prefix = ctx.prefix if isinstance(ctx.prefix, str) else ctx.prefix[0]
+        prefix = choice(await self.bot.get_valid_prefixes())
         message.content = message.content.replace(replacer_string, prefix)
         ctx.channel.typing()
         await self.bot.process_commands(message)
