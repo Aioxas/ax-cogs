@@ -220,28 +220,31 @@ class AdvancedGoogle(commands.Cog):
 
     async def session_runner(self, session: ClientSession, uir: str, refID: str, attempt: int) -> str:
         debug_location = cog_data_path(self) / "debug"
-        async with session.get(uir, headers=self.option) as resp:
-            test = await resp.text()
-            if not path.exists(str(debug_location)):
-                mkdir(str(debug_location))
-            with open(
-                str(debug_location / f"{refID}_{attempt}.html"), "w", encoding="utf-8"
-            ) as f:
-                ip_find = self.regex[3].findall(test)
-                for info in ip_find:
-                    test.replace(info, "0.0.0.0")
-                f.write(test)
-            result_find = self.regex[1].findall(test)
-            if (
-                len(query_find := self.regex[2].findall(test)) == 1
-                and len(result_find) == 0
-            ):
-                return query_find[0]
-            try:
-                result_find = "\n".join(self.parsed(result_find))
-                return result_find
-            except IndexError:
-                return ""
+        try:
+            async with session.get(uir, headers=self.option) as resp:
+                test = await resp.text()
+                if not path.exists(str(debug_location)):
+                    mkdir(str(debug_location))
+                with open(
+                    str(debug_location / f"{refID}_{attempt}.html"), "w", encoding="utf-8"
+                ) as f:
+                    ip_find = self.regex[3].findall(test)
+                    for info in ip_find:
+                        test.replace(info, "0.0.0.0")
+                    f.write(test)
+                result_find = self.regex[1].findall(test)
+                if (
+                    len(query_find := self.regex[2].findall(test)) == 1
+                    and len(result_find) == 0
+                ):
+                    return query_find[0]
+                try:
+                    result_find = "\n".join(self.parsed(result_find))
+                    return result_find
+                except IndexError:
+                    return ""
+        except ConnectionResetError:
+            return ""
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
