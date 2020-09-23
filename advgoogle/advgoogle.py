@@ -4,7 +4,7 @@ from redbot.core.data_manager import cog_data_path
 from redbot.core.utils.chat_formatting import inline
 
 from aiohttp import ClientSession
-from aiohttp_socks import ProxyConnector, ProxyConnectionError
+from aiohttp_socks import ProxyConnector, ProxyConnectionError, ProxyTimeoutError
 from discord import File
 from glob import glob
 from random import choice
@@ -243,7 +243,7 @@ class AdvancedGoogle(commands.Cog):
                     return result_find
                 except IndexError:
                     return ""
-        except ConnectionResetError:
+        except (ConnectionResetError, ProxyTimeoutError):
             return ""
 
     def cog_unload(self):
