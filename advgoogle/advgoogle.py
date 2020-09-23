@@ -3,7 +3,7 @@ from redbot.core.bot import Red
 from redbot.core.data_manager import cog_data_path
 from redbot.core.utils.chat_formatting import inline
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientConnectorError
 from aiohttp_socks import ProxyConnector, ProxyConnectionError, ProxyTimeoutError
 from discord import File
 from glob import glob
@@ -193,7 +193,11 @@ class AdvancedGoogle(commands.Cog):
                 async with self.session.get("https://www.socks-proxy.net", headers=self.option) as resp:
                     test = await resp.text()
                     url_text = self.regex[6].findall(test)
+                    counter = 1
+                    url_len = len(url_text)
                     for proxy_url in url_text:
+                        print(f"Trying proxy #{counter} of {url_len} proxies")
+                        counter += 1
                         try:
                             conn = ProxyConnector.from_url(f"socks4://{proxy_url}")
                             query_find = await self.query_finder(uir, refID, url, conn)
@@ -243,7 +247,7 @@ class AdvancedGoogle(commands.Cog):
                     return result_find
                 except IndexError:
                     return ""
-        except (ConnectionResetError, ProxyTimeoutError):
+        except (ConnectionResetError, ProxyTimeoutError, ClientConnectorError):
             return ""
 
     def cog_unload(self):
