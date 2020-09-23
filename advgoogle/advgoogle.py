@@ -4,7 +4,7 @@ from redbot.core.data_manager import cog_data_path
 from redbot.core.utils.chat_formatting import inline
 
 from aiohttp import ClientSession
-from aiohttp_socks import ProxyConnector
+from aiohttp_socks import ProxyConnector, ProxyConnectionError
 from discord import File
 from glob import glob
 from random import choice
@@ -194,10 +194,13 @@ class AdvancedGoogle(commands.Cog):
                     test = await resp.text()
                     url_text = self.regex[6].findall(test)
                     for proxy_url in url_text:
-                        conn = ProxyConnector.from_url(f"socks4://{proxy_url}")
-                        query_find = await self.query_finder(uir, refID, url, conn)
-                        if query_find != "":
-                            break
+                        try:
+                            conn = ProxyConnector.from_url(f"socks4://{proxy_url}")
+                            query_find = await self.query_finder(uir, refID, url, conn)
+                            if query_find != "":
+                                break
+                        except ProxyConnectionError:
+                            continue
             return query_find, refID  # End of generic search
 
     async def query_finder(self, uir: str, refID: str, url: str, conn: ProxyConnector = None) -> str:
