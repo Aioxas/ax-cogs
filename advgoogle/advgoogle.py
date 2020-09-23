@@ -193,6 +193,7 @@ class AdvancedGoogle(commands.Cog):
                 async with self.session.get("https://www.socks-proxy.net", headers=self.option) as resp:
                     test = await resp.text()
                     url_text = self.regex[6].findall(test)
+                    print(url_text)
                     for proxy_url in url_text:
                         conn = ProxyConnector.from_url(f"socks4://{proxy_url}")
                         query_find = await self.query_finder(uir, refID, url, conn)
@@ -225,6 +226,7 @@ class AdvancedGoogle(commands.Cog):
                 str(debug_location / f"{refID}_{attempt}.html"), "w", encoding="utf-8"
             ) as f:
                 ip_find = self.regex[3].findall(test)
+                print(ip_find)
                 for info in ip_find:
                     test.replace(info, "0.0.0.0")
                 f.write(test)
