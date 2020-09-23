@@ -23,10 +23,10 @@ class AdvancedGoogle(commands.Cog):
             compile(r",\"ou\":\"([^`]*?)\""),
             compile(r"class=\"r\"><a href=\"([^`]*?)\""),
             compile(r"Please click <a href=\"([^`]*?)\">here</a>"),
-            compile(r"\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}"),
+            compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"),
             compile(r",\[\"([^`]*?)\",\d{1,4},\d{1,4}\]"),
             compile(r"alt=\"\" src=\"([^`]*?)\""),
-            compile(r"(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}:\d{4,5})\n"),
+            compile(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:\d{4,5})\n"),
             # compile(r"style=\"border:1px solid #ccc;padding:1px\" src=\"([^`]*?)\""),
             # compile(r"<div class=\"kCrYT\"><a href=\"/url?q=([^`]*?)&amp;sa=U"),
         ]
@@ -193,7 +193,6 @@ class AdvancedGoogle(commands.Cog):
                 async with self.session.get("https://www.socks-proxy.net", headers=self.option) as resp:
                     test = await resp.text()
                     url_text = self.regex[6].findall(test)
-                    print(url_text)
                     for proxy_url in url_text:
                         conn = ProxyConnector.from_url(f"socks4://{proxy_url}")
                         query_find = await self.query_finder(uir, refID, url, conn)
@@ -218,7 +217,7 @@ class AdvancedGoogle(commands.Cog):
 
     async def session_runner(self, session: ClientSession, uir: str, refID: str, attempt: int) -> str:
         debug_location = cog_data_path(self) / "debug"
-        async with self.session.get(uir, headers=self.option) as resp:
+        async with session.get(uir, headers=self.option) as resp:
             test = await resp.text()
             if not path.exists(str(debug_location)):
                 mkdir(str(debug_location))
@@ -226,7 +225,6 @@ class AdvancedGoogle(commands.Cog):
                 str(debug_location / f"{refID}_{attempt}.html"), "w", encoding="utf-8"
             ) as f:
                 ip_find = self.regex[3].findall(test)
-                print(ip_find)
                 for info in ip_find:
                     test.replace(info, "0.0.0.0")
                 f.write(test)
