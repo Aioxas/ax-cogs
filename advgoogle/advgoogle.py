@@ -4,7 +4,8 @@ from redbot.core.data_manager import cog_data_path
 from redbot.core.utils.chat_formatting import inline
 
 from aiohttp import ClientSession
-from discord import File, Message
+from aiohttp_socks import ProxyConnector
+from discord import File
 from glob import glob
 from random import choice
 from re import compile
@@ -17,7 +18,7 @@ from uuid import uuid4
 class AdvancedGoogle(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
-        self.session = ClientSession(loop=self.bot.loop)
+        self.session = ClientSession()
         self.regex = [
             compile(r",\"ou\":\"([^`]*?)\""),
             compile(r"class=\"r\"><a href=\"([^`]*?)\""),
@@ -25,6 +26,7 @@ class AdvancedGoogle(commands.Cog):
             compile(r"\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}"),
             compile(r",\[\"([^`]*?)\",\d{1,4},\d{1,4}\]"),
             compile(r"alt=\"\" src=\"([^`]*?)\""),
+            compile(r"(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}:\d{4,5})\n"),
             # compile(r"style=\"border:1px solid #ccc;padding:1px\" src=\"([^`]*?)\""),
             # compile(r"<div class=\"kCrYT\"><a href=\"/url?q=([^`]*?)&amp;sa=U"),
         ]
@@ -33,6 +35,8 @@ class AdvancedGoogle(commands.Cog):
             " AppleWebKit/537.36 (KHTML, like Gecko)"
             " Chrome/69.0.3497.100 Safari/537.36"
         }
+        self.socks5 = ""
+        self.socks4 = ""
 
     @checks.is_owner()
     @commands.command()
@@ -184,13 +188,34 @@ class AdvancedGoogle(commands.Cog):
             uri = url + "/search?hl=en&q="
             uir = self.quote(uri, text)
             refID = str(uuid4())
-            query_find = await self.result_returner(uir, refID, 0)
-            if "\n" not in query_find and query_find != "":
-                uir = url + query_find.replace("&amp;", "&")
-                query_find = await self.result_returner(uir, refID, 1)
+            query_find = await self.query_finder(uir, refID, url, None)
+            if query_find == "":
+                async with self.session.get("https://www.socks-proxy.net", headers=self.option) as resp:
+                    test = await resp.text()
+                    url_text = self.regex[6].findall(test)
+                    for proxy_url in url_text:
+                        conn = ProxyConnector.from_url(f"socks4://{proxy_url}")
+                        query_find = await self.query_finder(uir, refID, url, conn)
+                        if query_find != "":
+                            break
             return query_find, refID  # End of generic search
 
-    async def result_returner(self, uir: str, refID: str, attempt: int) -> str:
+    async def query_finder(self, uir: str, refID: str, url: str, conn: ProxyConnector = None) -> str:
+        query_find = await self.result_returner(uir, refID, 0, conn)
+        if "\n" not in query_find and query_find != "":
+            uir = url + query_find.replace("&amp;", "&")
+            query_find = await self.result_returner(uir, refID, 1, conn)
+        return query_find
+
+    async def result_returner(self, uir: str, refID: str, attempt: int, conn: ProxyConnector = None) -> str:
+        if conn is not None:
+            async with ClientSession(connector=conn) as session:
+                result = await self.session_runner(session, uir, refID, attempt)
+                return result
+        result = await self.session_runner(self.session, uir, refID, attempt)
+        return result
+
+    async def session_runner(self, session: ClientSession, uir: str, refID: str, attempt: int) -> str:
         debug_location = cog_data_path(self) / "debug"
         async with self.session.get(uir, headers=self.option) as resp:
             test = await resp.text()
@@ -214,19 +239,6 @@ class AdvancedGoogle(commands.Cog):
                 return result_find
             except IndexError:
                 return ""
-
-    @commands.Cog.listener()
-    async def on_message(self, message: Message) -> None:
-        ctx = await self.bot.get_context(message, cls=commands.Context)
-        replacer_string = "ok "
-        str2find = replacer_string + "google "
-        text = message.clean_content.lower()
-        if ctx.valid or not text.startswith(str2find):
-            return
-        prefix = choice(await self.bot.get_valid_prefixes())
-        message.content = message.content.replace(replacer_string, prefix)
-        ctx.channel.typing()
-        await self.bot.process_commands(message)
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
