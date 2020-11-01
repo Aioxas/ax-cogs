@@ -1,4 +1,4 @@
-from redbot.core import checks, commands
+from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.data_manager import cog_data_path
 from redbot.core.utils.chat_formatting import inline
@@ -16,6 +16,13 @@ from uuid import uuid4
 
 
 class AdvancedGoogle(commands.Cog):
+
+    default_guild_settings = {"socks5": "", "socks4": "", "searches_in_progress": {}}
+
+    ref_id_as_key_dict = {
+        "proxy_cancel": False,
+    }
+
     def __init__(self, bot: Red):
         self.bot = bot
         self.session = ClientSession()
@@ -35,8 +42,25 @@ class AdvancedGoogle(commands.Cog):
             " AppleWebKit/537.36 (KHTML, like Gecko)"
             " Chrome/69.0.3497.100 Safari/537.36"
         }
-        self.socks5 = ""
-        self.socks4 = ""
+        self._google = Config.get_conf(self, 2636912627)
+        self._google.register_guild(**self.default_guild_settings)
+
+    @commands.guild_only()
+    @commands.command()
+    async def googlecancel(self, ctx: commands.Context) -> None:
+        """Cancels a running google search for the current guild, may need to be ran multiple times."""
+        # default off.
+        guild = ctx.guild
+        proxy_cancel = not await self._google.guild(guild).proxy_cancel()
+        await self._google.guild(guild).proxy_cancel.set(proxy_cancel)
+
+        # for a toggle, settings should save here in case bot fails to send message
+        if proxy_cancel:
+            await ctx.send(
+                "Check console after 60s to see if new proxy messages appear"
+            )
+        else:
+            await ctx.send("")
 
     @checks.is_owner()
     @commands.command()
@@ -196,6 +220,9 @@ class AdvancedGoogle(commands.Cog):
                     counter = 1
                     url_len = len(url_text)
                     for proxy_url in url_text:
+                        if self.proxy_cancel:
+                            self.proxy_cancel = False
+                            break
                         print(f"Trying proxy #{counter} of {url_len} proxies")
                         counter += 1
                         try:
