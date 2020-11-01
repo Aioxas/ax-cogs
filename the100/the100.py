@@ -20,8 +20,10 @@ class The100(BaseCog):
         self.url = "https://www.the100.io/api/v1/groups"
         self._the100.register_guild(**self.default_guild_settings)
 
-    def __unload(self):
-        self.session.close()
+    def cog_unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __unload = cog_unload
 
     async def permcheck(self, ctx):
         author = ctx.message.author
@@ -43,7 +45,7 @@ class The100(BaseCog):
 
     @commands.group()
     async def the100(self, ctx):
-        """The100 settingS"""
+        """The100 settings"""
         if ctx.invoked_subcommand is None:
             await ctx.send_cmd_help()
         elif not (await self.permcheck(ctx)):
@@ -60,13 +62,8 @@ class The100(BaseCog):
         data = await self._the100.guild(ctx.guild).all()
         if not self.permcheck(ctx):
             return
-        if data["token"]:
-            self.headers["Authorization"] = self.headers["Authorization"].format(data["token"])
-            headers = self.headers
-        else:
-            await ctx.send(
-                "Token has not been set, please set it using [p]the100 set token in a pm"
-            )
+        headers = self.token_retriever(data)
+        if headers == "":
             return
         async with self.session.get(url, headers=headers) as resp:
             response = await resp.json()
@@ -84,13 +81,8 @@ class The100(BaseCog):
         data = await self._the100.guild(ctx.guild).all()
         if not self.permcheck(ctx):
             return
-        if data["token"]:
-            self.headers["Authorization"] = self.headers["Authorization"].format(data["token"])
-            headers = self.headers
-        else:
-            await ctx.send(
-                "Token has not been set, please set it using [p]the100 set token in a pm"
-            )
+        headers = self.token_retriever(data)
+        if headers == "":
             return
         async with self.session.get(url, headers=headers) as resp:
             response = await resp.json()
@@ -109,13 +101,8 @@ class The100(BaseCog):
         data = await self._the100.guild(ctx.guild).all()
         if not self.permcheck(ctx):
             return
-        if data["token"]:
-            self.headers["Authorization"] = self.headers["Authorization"].format(data["token"])
-            headers = self.headers
-        else:
-            await ctx.send(
-                "Token has not been set, please set it using this command in a PM, [p]the100 set token"
-            )
+        headers = self.token_retriever(data)
+        if headers == "":
             return
         async with self.session.get(url, headers=headers) as resp:
             response = await resp.json()
@@ -166,13 +153,8 @@ class The100(BaseCog):
         data = await self._the100.guild(ctx.guild).all()
         if not self.permcheck(ctx):
             return
-        if data["token"]:
-            self.headers["Authorization"] = self.headers["Authorization"].format(data["token"])
-            headers = self.headers
-        else:
-            await ctx.send(
-                "Token has not been set, please set it using [p]the100 set token in a pm"
-            )
+        headers = self.token_retriever(data)
+        if headers == "":
             return
         async with self.session.get(url, headers=headers) as resp:
             response = await resp.json()
@@ -256,3 +238,12 @@ class The100(BaseCog):
             data["role"] = role
         await self._the100.guild(ctx.guild).set(data)
         await ctx.send("Access role {} has been set".format(role))
+
+    def token_retriever(self, ctx, data: dict):
+        if data["token"]:
+            return self.headers["Authorization"].format(data["token"])
+        else:
+            await ctx.send(
+                "Token has not been set, please set it using this command in a PM, [p]the100 set token"
+            )
+            return ""
