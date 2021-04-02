@@ -47,7 +47,7 @@ class Emote:
         else:
             self.servers[server.id]["status"] = not self.servers[server.id]["status"]
         if "emotes" not in self.servers[server.id]:
-            self.servers[server.id]["emotes"] = dict()
+            self.servers[server.id]["emotes"] = {}
         dataIO.save_json(self.data_path, self.servers)
         # for a toggle, settings should save here in case bot fails to send message
         if self.servers[server.id]["status"]:
@@ -69,7 +69,7 @@ class Emote:
             # default off
             self.servers[server.id] = dict({"status": False})
             if "emotes" not in self.servers[server.id]:
-                self.servers[server.id]["emotes"] = dict()
+                self.servers[server.id]["emotes"] = {}
             dataIO.save_json(self.data_path, self.servers)
         if not url.endswith((".gif", ".gifv", ".png")):
             await self.bot.say("Links ending in .gif, .png, and .gifv are the only ones accepted."
@@ -108,7 +108,7 @@ class Emote:
                 # default off
                 self.servers[server.id] = dict({"status": False})
                 if "emotes" not in self.servers[server.id]:
-                    self.servers[server.id]["emotes"] = dict()
+                    self.servers[server.id]["emotes"] = {}
                 dataIO.save_json(self.data_path, self.servers)
             if name in self.servers[server.id]["emotes"]:
                 os.remove(self.emote+self.servers[server.id]["emotes"][name])
@@ -136,7 +136,7 @@ class Emote:
             # default off
             self.servers[server.id] = dict({"status": False})
             if "emotes" not in self.servers[server.id]:
-                self.servers[server.id]["emotes"] = dict()
+                self.servers[server.id]["emotes"] = {}
             dataIO.save_json(self.data_path, self.servers)
         if newname in self.servers[server.id]["emotes"]:
             await self.bot.say("This keyword already exists, please use another keyword.")
@@ -172,7 +172,7 @@ class Emote:
             # default off
             self.servers[server.id] = dict({"status": False})
             if "emotes" not in self.servers[server.id]:
-                self.servers[server.id]["emotes"] = dict()
+                self.servers[server.id]["emotes"] = {}
             dataIO.save_json(self.data_path, self.servers)
         istyles = sorted(self.servers[server.id]["emotes"])
         if not istyles:
@@ -189,7 +189,7 @@ class Emote:
             istyle = []
             for i in range(len(istyles)):
                 ist = re.findall("\\b"+style+"\\w+", istyles[i])
-                istyle = istyle + ist
+                istyle += ist
             style = 10
         else:
             await self.bot.say("Your list style is not correct, please use one"
@@ -202,16 +202,13 @@ class Emote:
             if style <= count:
                 y = s.join(istyle[:style])
                 await self.bot.say("List of available emotes:\n{}".format(y))
-                if style > len(istyle):
-                    return
-                style += count
-            elif style > count:
+            else:
                 style2 = style - count
                 y = s.join(istyle[style2:style])
                 await self.bot.say("Continuation:\n{}".format(y))
-                if style > len(istyle):
-                    return
-                style += count
+            if style > len(istyle):
+                return
+            style += count
             await self.bot.say("Do you want to continue seeing the list? Yes/No")
             answer = await self.bot.wait_for_message(timeout=15,
                                                      author=ctx.message.author)
@@ -242,20 +239,18 @@ class Emote:
             # default off
             self.servers[server.id] = dict({"status": False})
             if "emotes" not in self.servers[server.id]:
-                self.servers[server.id]["emotes"] = dict()
+                self.servers[server.id]["emotes"] = {}
             dataIO.save_json(self.data_path, self.servers)
         if style not in styleset:
             return
-        msg = "Keywords deleted due to missing files in the emotes list:\n"
-        c = list()
-        for entry in os.scandir(self.emote):
-            c.append(entry.name)
+        c = [entry.name for entry in os.scandir(self.emote)]
         if style == styleset[0]:
+            msg = "Keywords deleted due to missing files in the emotes list:\n"
             if alls == "all":
                 servers = sorted(self.servers)
                 servers.remove("emote")
                 for servs in servers:
-                    missing = list()
+                    missing = []
                     istyles = sorted(self.servers[servs]["emotes"])
                     for n in istyles:
                         cat = "|".join(c)
@@ -282,16 +277,13 @@ class Emote:
                         if style <= 10:
                             y = s.join(missing[:style])
                             await self.bot.say(msg + y)
-                            if style >= len(missing):
-                                break
-                            style += 10
-                        elif style > 10:
+                        else:
                             style2 = style - 10
                             y = s.join(missing[style2:style])
                             await self.bot.say("Continuation:\n{}".format(y))
-                            if style >= len(missing):
-                                break
-                            style += 10
+                        if style >= len(missing):
+                            break
+                        style += 10
                         await self.bot.say("Do you want to continue seeing the list? Yes/No")
                         answer = await self.bot.wait_for_message(timeout=15,
                                                                  author=ctx.message.author)
@@ -325,16 +317,13 @@ class Emote:
                     if style <= 10:
                         y = s.join(missing[:style])
                         await self.bot.say(msg + y)
-                        if style >= len(missing):
-                            return
-                        style += 10
-                    elif style > 10:
+                    else:
                         style2 = style - 10
                         y = s.join(missing[style2:style])
                         await self.bot.say("Continuation:\n{}".format(y))
-                        if style >= len(missing):
-                            return
-                        style += 10
+                    if style >= len(missing):
+                        return
+                    style += 10
                     await self.bot.say("Do you want to continue seeing the list? Yes/No")
                     answer = await self.bot.wait_for_message(timeout=15,
                                                              author=ctx.message.author)
@@ -416,13 +405,13 @@ class Emote:
                 # default off
                 self.servers[server.id] = dict({"status": False})
                 if "emotes" not in self.servers[server.id]:
-                    self.servers[server.id]["emotes"] = dict()
+                    self.servers[server.id]["emotes"] = {}
                 dataIO.save_json(self.data_path, self.servers)
             # emotes is off, so ignore
             if "status" not in self.servers[server.id]:
                 self.servers[server.id] = dict({"status": False})
                 if "emotes" not in self.servers[server.id]:
-                    self.servers[server.id]["emotes"] = dict()
+                    self.servers[server.id]["emotes"] = {}
                 dataIO.save_json(self.data_path, self.servers)
             if not self.servers[server.id]["status"]:
                 return
@@ -478,12 +467,11 @@ def check_folders():
 
 
 def check_files():
-    # create server.json if not there
-    # put in default values
-    default = {}
-    default['emote'] = 'data/emote/images/'
     if not os.path.isfile('data/emote/servers.json'):
         print('Creating default emote servers.json...')
+            # create server.json if not there
+            # put in default values
+        default = {'emote': 'data/emote/images/'}
         dataIO.save_json('data/emote/servers.json', default)
 
 

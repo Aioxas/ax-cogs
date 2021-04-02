@@ -27,7 +27,7 @@ class Longcat:
         the_cat = [Image.open(self.path + "butt.png")]
         trunk = Image.open(self.path + "trunk.png")
         head = Image.open(self.path + "head.png")
-        for i in range(len_cat-1):
+        for _ in range(len_cat-1):
             the_cat.append(trunk)
         the_cat.append(head)
         widths, heights = zip(*(i.size for i in the_cat))

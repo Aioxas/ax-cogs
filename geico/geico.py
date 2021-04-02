@@ -20,7 +20,7 @@ class Geico:
         if num > 5:
             num = 5
             await self.bot.reply("Heck naw brah. 5 is max. Any more and you get killed.")
-        for i in range(num):
+        for _ in range(num):
             async with aiohttp.request("GET", 'http://bash.org/?random') as resp:
                 test = str(await resp.text())
                 subs = re.findall(regex[0], test)
@@ -49,7 +49,7 @@ class Geico:
             async with aiohttp.request("GET", url) as resp:
                 test = str(await resp.text())
                 quote_find = list(set(re.findall(regex, test)))
-            for i in range(number):
+            for _ in range(number):
                 random_quote = choice(quote_find)
                 quote_find.remove(random_quote)
                 while random_quote == title:

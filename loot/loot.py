@@ -96,7 +96,7 @@ class Loot:
         elif char in self.db[server.id][name]:
             del self.db[server.id][name][char]
         dataIO.save_json("data/loot/servers.json", self.db)
-        await self.bot.say("{} has been removed".format(char if char else name))
+        await self.bot.say("{} has been removed".format(char or name))
 
 
 def check_folders():
@@ -107,11 +107,11 @@ def check_folders():
 
 
 def check_files():
-    # create servers.json if not there
-    # put in default values
-    default = {}
     if not os.path.isfile('data/loot/servers.json'):
         print('Creating default loot servers.json...')
+        # create servers.json if not there
+        # put in default values
+        default = {}
         dataIO.save_json('data/loot/servers.json', default)
 
 
