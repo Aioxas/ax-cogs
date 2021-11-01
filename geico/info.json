@@ -2,7 +2,7 @@
     "AUTHOR" : "Aioxas",
     "INSTALL_MSG" : "Thanks for installing my cog. \n[p]bash and [p]quotes will be your guides.\nA 15-minute call could save you 15 percent (or more) on car insurance.",
     "NAME" : "Geico",
-    "SHORT" : "Online quote retrieval",
+    "SHORT" : "Retrieves quotes from bash.org and other quote sites",
     "TAGS" : ["Fun"],
     "DISABLED": true,
     "HIDDEN": true,
