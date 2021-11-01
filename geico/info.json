@@ -4,5 +4,7 @@
     "NAME" : "Geico",
     "SHORT" : "Online quote retrieval",
     "TAGS" : ["Fun"],
+    "DISABLED": true,
+    "HIDDEN": true,
     "DESCRIPTION" : "A 15-minute call could save you 15 percent (or more) on car insurance.\nQuotes from Bash.org and various authors(soon)."
 }
