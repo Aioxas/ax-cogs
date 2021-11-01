@@ -5,5 +5,7 @@
     "SHORT" : "Keeping tabs on who paid for loot",
     "REQUIREMENTS" : [],
     "TAGS" : ["Utilities"],
+    "DISABLED": true,
+    "HIDDEN": true,
     "DESCRIPTION" : "Keeping tabs on who paid for loot"
 }
