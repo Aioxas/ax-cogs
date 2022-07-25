@@ -274,15 +274,16 @@ class Horoscope(BaseCog):
         await ctx.send("Font has been saved")
 
     def fortune_process(self, fortune):
-        img = Image.open(str(bundled_data_path(self) / "cookie.png"))
-        draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype(str(bundled_data_path(self) / "FortuneCookieNF.ttf"), 15)
-        line = fortune.split()
-        sep = " "
-        line1 = sep.join(line[:5])
-        line2 = sep.join(line[5:10])
-        line3 = sep.join(line[10:])
-        draw.text((134, 165), line1, (0, 0, 0), font=font, align="center")
-        draw.text((134, 180), line2, (0, 0, 0), font=font, align="center")
-        draw.text((134, 195), line3, (0, 0, 0), font=font, align="center")
-        img.save(str(bundled_data_path(self) / "cookie-edit.png"))
+        with open(str(bundled_data_path(self) / "cookie-edit.png"), "wb") as f:
+            with Image.open(str(bundled_data_path(self) / "cookie.png")) as img:
+                draw = ImageDraw.Draw(img)
+                font = ImageFont.truetype(str(bundled_data_path(self) / "FortuneCookieNF.ttf"), 15)
+                line = fortune.split()
+                sep = " "
+                line1 = sep.join(line[:5])
+                line2 = sep.join(line[5:10])
+                line3 = sep.join(line[10:])
+                draw.text((134, 165), line1, (0, 0, 0), font=font, align="center")
+                draw.text((134, 180), line2, (0, 0, 0), font=font, align="center")
+                draw.text((134, 195), line3, (0, 0, 0), font=font, align="center")
+                img.save(f)
