@@ -83,7 +83,8 @@ class Horoscope(BaseCog):
             "chinese": "http://www.horoscope.com/us/horoscopes/chinese/horoscope-chinese-daily-today.aspx?sign=",
         }
         regex = [
-            r"<strong( class=\"date\"|)>([^`]*?)<\/strong> - ([^`]*?)\n",
+            r"<\/strong> - ([^`]*?)\n",
+            r"\w+\s\d+,\s\d+",
         ]
         try:
             horos = sign.split(", ")
@@ -106,8 +107,9 @@ class Horoscope(BaseCog):
                 async with self.session.get(uir, headers=option) as resp:
                     test = str(await resp.text('ISO-8859-1'))
                     msg = re.findall(regex[0], test)[0]
-                    msg_content = msg[2].replace("</p>", "")
-                    msg = msg_content + " - " + msg[1]
+                    date = re.findall(regex[1], test)[0]
+                    msg_content = msg.replace("</p>", "")
+                    msg = msg_content + " - " + date
                     await ctx.send(
                         "Today's chinese horoscope for the one"
                         " born in the year of the {} is:\n".format(sign) + box(msg)
@@ -128,8 +130,9 @@ class Horoscope(BaseCog):
                 async with self.session.get(uir, headers=option) as resp:
                     test = str(await resp.text('ISO-8859-1'))
                     msg = re.findall(regex[0], test)[0]
-                    msg_content = msg[2].replace("</p>", "")
-                    msg = msg_content + " - " + msg[1]
+                    date = re.findall(regex[1], test)[0]
+                    msg_content = msg.replace("</p>", "")
+                    msg = msg_content + " - " + date
                     if style == "love":
                         await ctx.send(
                             "Today's love horoscope for **{}** is:\n".format(sign) + box(msg)
