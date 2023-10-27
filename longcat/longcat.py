@@ -1,16 +1,19 @@
-import os
-import time
 import discord
+import io
 from PIL import Image
+import random
 from redbot.core import commands
 from redbot.core.data_manager import bundled_data_path
-
 from redbot.core.bot import Red
 
-BaseCog = getattr(commands, "Cog", object)
 
+class Longcat(commands.Cog):
+    """Longcat is long."""
 
-class Longcat(BaseCog):
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete."""
+        return
+
     def __init__(self, bot: Red):
         self.bot = bot
 
@@ -21,6 +24,7 @@ class Longcat(BaseCog):
 
     @commands.command(aliases=nreow)
     async def cat(self, ctx):
+        """Longcat is long. Use more "a" characters in the command to make a longer cat."""
         # we grab the length of the used prefix and add one letter c
         if str(ctx.message.content.split(ctx.prefix)[1]).startswith("ny"):
             len_prefix = len(ctx.prefix) + 2
@@ -45,8 +49,8 @@ class Longcat(BaseCog):
         for im in the_cat:
             cat.paste(im, (x_offset, 0))
             x_offset += im.size[0]
-        # I'm giving it a name based on a timestamp, this prevents future problems
-        litter_box = str(time.time()).split(".")[0] + ".png"
-        cat.save(bundled_data_path(self) / litter_box)
-        await ctx.send(file=discord.File(fp=str((bundled_data_path(self) / litter_box))))
-        os.remove(bundled_data_path(self) / litter_box)
+        cat_image_file_object = io.BytesIO()
+        cat.save(cat_image_file_object, format="png")
+        cat_image_file_object.seek(0)
+        cat_image_final = discord.File(fp=cat_image_file_object, filename=f"{random.randint(25000,99999)}_longcat.png")
+        await ctx.send(file=cat_image_final)

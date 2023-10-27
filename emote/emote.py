@@ -11,20 +11,23 @@ from redbot.core.bot import Red
 from redbot.core.data_manager import cog_data_path
 # if this seem hard to read/understand, remove the comments. Might make it easier
 
-BaseCog = getattr(commands, "Cog", object)
 
-
-class Emote(BaseCog):
+class Emote(commands.Cog):
     """Emote was made using irdumb's sadface cog's code.
 
     Owner is responsible for it's handling."""
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete."""
+        return
 
     default_guild_settings = {"status": False, "emotes": {}}
 
     def __init__(self, bot: Red):
         self.bot = bot
         self._emote = Config.get_conf(self, 1824791591)
-        self._emote_path = cog_data_path(self) / "images"
+       # self._emote_path = os.sep.join([str(cog_data_path(self)), "images"])
+        self._emote_path = cog_data_path(self)
 
         self._emote.register_guild(**self.default_guild_settings)
 
@@ -33,8 +36,8 @@ class Emote(BaseCog):
     # doesn't make sense to use this command in a pm, because pms aren't in servers
     # mod_or_permissions needs something in it otherwise it's mod or True which is always True
 
-    def __unload(self):
-        self.session.close()
+    def cog_unload(self):
+        self.bot.loop.create_task(self.session.close())
 
     @commands.group()
     @commands.guild_only()
@@ -84,25 +87,19 @@ class Emote(BaseCog):
             return
         if url.endswith(".gifv"):
             url = url.replace(".gifv", ".gif")
-        try:
-            await ctx.send("Downloading {}.".format(name))
-            async with self.session.get(url, headers=option) as r:
-                emote = await r.read()
-                print(self._emote_path)
-                with open(self._emote_path + "{}.{}".format(name, url[-3:]), "wb") as f:
-                    f.write(emote)
 
-                await ctx.send("Adding {} to the list.".format(name))
-                emotes[name] = "{}.{}".format(name, url[-3:])
-                await self._emote.guild(guild).emote.set(emotes)
-            await ctx.send("{} has been added to the list".format(name))
-        except Exception as e:
-            print(e)
-            await ctx.send(
-                "It seems your url is not valid,"
-                " please make sure you are not typing names with spaces as they are and then the url."
-                " If so, do [p]emotes add name_with_spaces url"
-            )
+        await ctx.send("Downloading {}.".format(name))
+        async with self.session.get(url, headers=option) as r:
+            emote = await r.read()
+            filename = f"{name}.{url[-3:]}"
+            patha = os.path.join(str(self._emote_path), filename)
+            with open(patha, "wb") as f:
+                f.write(emote)
+
+            await ctx.send("Adding {} to the list.".format(name))
+            emotes[name] = "{}.{}".format(name, url[-3:])
+            await self._emote.guild(guild).emotes.set(emotes)
+        await ctx.send("{} has been added to the list".format(name))
 
     @checks.is_owner()
     @emotes.command()
@@ -144,26 +141,26 @@ class Emote(BaseCog):
         if newname in emotes:
             await ctx.send("This keyword already exists, please use another keyword.")
             return
-        try:
-            if name in emotes:
-                emotes[newname] = "{}.{}".format(newname, emotes[name][-3:])
-                os.rename(self._emote + emotes[name], self._emote + emotes[newname])
-                del emotes[name]
-            else:
-                await ctx.send(
-                    "{} is not a valid name, please make sure the name of the"
-                    " emote that you want to edit exists"
-                    " Use [p]emotes list to verify it's there.".format(name)
-                )
-                return
-            await self._emote.guild(guild).emote.set(emotes)
-            await ctx.send("{} in the emotes list has been renamed to {}".format(name, newname))
-        except FileNotFoundError:
+     #   try:
+        if name in emotes:
+            emotes[newname] = "{}.{}".format(newname, emotes[name][-3:])
+            os.rename(str(self._emote_path) + os.sep + emotes[name], str(self._emote_path) + os.sep + emotes[newname])
+            del emotes[name]
+        else:
             await ctx.send(
-                "For some unknown reason, your emote is not available in the default directory,"
-                " that is, data/emote/images. This means that it can't be edited."
-                " But it has been successfully edited in the emotes list."
+                "{} is not a valid name, please make sure the name of the"
+                " emote that you want to edit exists"
+                " Use [p]emotes list to verify it's there.".format(name)
             )
+            return
+        await self._emote.guild(guild).emote.set(emotes)
+        await ctx.send("{} in the emotes list has been renamed to {}".format(name, newname))
+     #   except FileNotFoundError:
+     #       await ctx.send(
+     #           "For some unknown reason, your emote is not available in the default directory,"
+     #           " that is, data/emote/images. This means that it can't be edited."
+     #           " But it has been successfully edited in the emotes list."
+     #       )
 
     @emotes.command()
     @commands.guild_only()
@@ -313,6 +310,7 @@ class Emote(BaseCog):
                                 continue
                             break
             else:
+                missing = []
                 emotes = await self._emote.guild(guild).emotes()
                 istyles = sorted(emotes)
                 for n in istyles:
@@ -426,25 +424,20 @@ class Emote(BaseCog):
                     str(count) + " Keywords have been successfully added to the image list"
                 )
 
-    async def check_emotes(self, message):
+    @commands.Cog.listener()
+    async def on_message_without_command(self, message):
         # check if setting is on in this server
         # Let emotes happen in PMs always
         guild = message.guild
         if guild is None:
             return
-        emotes = await self._emote.guild(guild).emotes()
         # Filter unauthorized users, bots and empty messages
         if not message.content:
             return
 
-        # Don't respond to commands
-        for m in await self.bot.db.prefix():
-            if message.content.startswith(m):
-                return
-
-        if guild is not None:
-            if not (await self._emote.guild(guild).status()):
-                return
+        if not (await self._emote.guild(guild).status()):
+            return
+        emotes = await self._emote.guild(guild).emotes()
 
         msg = message.content.lower().split()
         listed = []

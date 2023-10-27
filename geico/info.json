@@ -1,5 +1,6 @@
 {
     "author": ["Aioxas"],
+    "hidden": true,
     "install_msg": "Thanks for installing my cog. \n[p]bash and [p]quotes will be your guides.\nA 15-minute call could save you 15 percent (or more) on car insurance.",
     "name": "Geico",
     "short": "Online quote retrieval",

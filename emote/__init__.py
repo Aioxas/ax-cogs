@@ -1,8 +1,9 @@
 from redbot.core import commands
 from .emote import Emote
 
+__red_end_user_data_statement__ = "This cog does not persistently store data or metadata about users."
 
-def setup(bot: commands.Bot):
+
+async def setup(bot: commands.Bot):
     n = Emote(bot)
-    bot.add_listener(n.check_emotes, "on_message")
-    bot.add_cog(n)
+    await bot.add_cog(n)

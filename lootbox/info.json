@@ -4,6 +4,6 @@
     "NAME" : "Lootbox",
     "SHORT" : "Simulate lootboxes",
     "REQUIREMENTS" : ["numpy"],
-    "TAGS" : ["fun"],
+    "TAGS" : ["lootbox", "simulate", "simulation"],
     "DESCRIPTION" : "Create and simulate lootboxes. The more you add to it, the more precise the simulations will be. (Not accurate to the tiniest details)"
 }

@@ -1,31 +1,40 @@
-from redbot.core import commands
-from redbot.core.data_manager import bundled_data_path
-from redbot.core.utils.chat_formatting import box
 import aiohttp
+import asyncio
+import discord
 import html
 import os
-import asyncio
 import re
-import discord
-from redbot.core.bot import Red
+
+from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
-BaseCog = getattr(commands, "Cog", object)
+from redbot.core import commands
+from redbot.core.bot import Red
+from redbot.core.data_manager import bundled_data_path
+from redbot.core.utils.chat_formatting import box
 
 
-class Horoscope(BaseCog):
+class Horoscope(commands.Cog):
+    """View a horoscope, or get a fortune cookie with lucky numbers."""
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete."""
+        return
+
     def __init__(self, bot: Red):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0"}
 
     def cog_unload(self):
-        asyncio.get_event_loop().create_task(self.session.close())
+        self.bot.loop.create_task(self.session.close())
 
     @commands.guild_only()
-    @commands.command(name="horo")
+    @commands.command(name="horo", aliases=["horoscope"])
     @commands.cooldown(10, 60, commands.BucketType.user)
     async def _horoscope(self, ctx, *, sign: str):
-        """Retrieves today's horoscope for a zodiac sign.
+        """
+        Retrieves today's horoscope for a zodiac sign.
         Works with both signs and birthdays. Make sure to do Month/Day.
 
         Western Zodiac:
@@ -43,12 +52,8 @@ class Horoscope(BaseCog):
                   [p]horo daily, virgo
                   [p]horo whatever, virgo
                   [p]horo chinese, 1901
-                  [p]horo love, 02/10"""
-        option = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, lnamee Gecko) "
-            "Chrome/67.0.3396.99 Safari/537.36"
-        }
+                  [p]horo love, 02/10
+        """
         signs = [
             "aries",
             "taurus",
@@ -83,7 +88,8 @@ class Horoscope(BaseCog):
             "chinese": "http://www.horoscope.com/us/horoscopes/chinese/horoscope-chinese-daily-today.aspx?sign=",
         }
         regex = [
-            r"<strong( class=\"date\"|)>([^`]*?)<\/strong> - ([^`]*?)\n",
+            r"<\/strong> - ([^`]*?)\n",
+            r"\w+\s\d+,\s\d+",
         ]
         try:
             horos = sign.split(", ")
@@ -103,11 +109,12 @@ class Horoscope(BaseCog):
                 uri = horo_styles[style]
                 sign_num = str(chinese_signs.index(sign) + 1)
                 uir = uri + sign_num
-                async with self.session.get(uir, headers=option) as resp:
+                async with self.session.get(uir, headers=self.headers) as resp:
                     test = str(await resp.text('ISO-8859-1'))
                     msg = re.findall(regex[0], test)[0]
-                    msg_content = msg[2].replace("</p>", "")
-                    msg = msg_content + " - " + msg[1]
+                    date = re.findall(regex[1], test)[0]
+                    msg_content = msg.replace("</p>", "")
+                    msg = msg_content + " - " + date
                     await ctx.send(
                         "Today's chinese horoscope for the one"
                         " born in the year of the {} is:\n".format(sign) + box(msg)
@@ -125,11 +132,12 @@ class Horoscope(BaseCog):
                 sign_num = str(signs.index(sign) + 1)
                 sign = sign.title()
                 uir = uri + sign_num
-                async with self.session.get(uir, headers=option) as resp:
+                async with self.session.get(uir, headers=self.headers) as resp:
                     test = str(await resp.text('ISO-8859-1'))
                     msg = re.findall(regex[0], test)[0]
-                    msg_content = msg[2].replace("</p>", "")
-                    msg = msg_content + " - " + msg[1]
+                    date = re.findall(regex[1], test)[0]
+                    msg_content = msg.replace("</p>", "")
+                    msg = msg_content + " - " + date
                     if style == "love":
                         await ctx.send(
                             "Today's love horoscope for **{}** is:\n".format(sign) + box(msg)
@@ -201,7 +209,6 @@ class Horoscope(BaseCog):
             r"3\)<\/strong><\/a>([^`]*?)<\/div>",
         ]
         url = "http://www.fortunecookiemessage.com"
-        await self.file_check()
         async with self.session.get(url, headers={"encoding": "utf-8"}) as resp:
             test = str(await resp.text('ISO-8859-1'))
             fortune = re.findall(regex[0], test)
@@ -212,59 +219,23 @@ class Horoscope(BaseCog):
             info = re.findall(regex[4], test)
             info[0] = html.unescape(info[0])
             dailynum = re.findall(regex[5], test)
-            self.fortune_process(fortune[0])
-            await ctx.send("Your fortune is:", file=discord.File(str(bundled_data_path(self) / "cookie-edit.png")))
+            img_png = self.fortune_process(fortune[0])
+            await ctx.send("Your fortune is:", file=discord.File(img_png, f"cookie_{ctx.author.id}.png"))
             await ctx.send("\n" + title[1] + info[1] + "\n" + title[2] + dailynum[0])
-            os.remove(str(bundled_data_path(self) / "cookie-edit.png"))
 
-    async def file_check(self):
-        urls = [
-            "https://images-2.discordapp.net/.eJwNwcENwyAMAMBdGABDCWCyDSKIoCYxwuZVdff27qPWvNSuTpHBO8DRudA8NAvN3Kp"
-            "uRO2qeXTWhW7IIrmcd32EwQbjMCRMaJNxPmwILxcRg_9Da_yWYoQ3dV5z6fE09f0BC6EjAw.B0sII_QLbL9kJo6Zbb4GuO4MQNw",
-            "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf",
-        ]
-        option = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)"
-            " Gecko/20100101 Firefox/40.1"
-        }
-        if os.path.exists(str(bundled_data_path(self) / "cookie.png")):
-            async with self.session.get(urls[0], headers=option) as resp:
-                test = await resp.read()
-                meow = False
-                with open(str(bundled_data_path(self) / "cookie.png"), "rb") as e:
-                    if len(test) != len(e.read()):
-                        meow = True
-                if meow:
-                    with open(str(bundled_data_path(self) / "cookie.png"), "wb") as f:
-                        f.write(test)
-        elif not os.path.exists(str(bundled_data_path(self) / "cookie.png")):
-            async with self.session.get(urls[0], headers=option) as resp:
-                test = await resp.read()
-                with open(str(bundled_data_path(self) / "cookie.png"), "wb") as f:
-                    f.write(test)
-        if not os.path.exists(str(bundled_data_path(self) / "FortuneCookieNF.ttf")):
-            async with self.session.get(urls[1], headers=option) as resp:
-                test = await resp.read()
-                with open(str(bundled_data_path(self) / "FortuneCookieNF.ttf"), "wb") as f:
-                    f.write(test)
-
+    @commands.is_owner()
     @commands.guild_only()
-    @commands.command(name="font")
+    @commands.command(name="tsujiurafont")
     @commands.cooldown(10, 60, commands.BucketType.user)
     async def _font(self, ctx, url: str = None):
         """Allows you to set the font that the fortune cookies are shown in.
            Only accepts ttf."""
-        option = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0)"
-            " Gecko/20100101 Firefox/40.1"
-        }
-
         if url is None:
-            url = "https://cdn.discordapp.com/attachments/218222973557932032/240223136447070208/FortuneCookieNF.ttf"
+            url = "https://github.com/Aioxas/ax-cogs/blob/V3.5/horoscope/data/FortuneCookieNF.ttf"
             if os.path.isfile(str(bundled_data_path(self) / "FortuneCookieNF.ttf")):
                 return
             else:
-                async with self.session.get(url, headers=option) as resp:
+                async with self.session.get(url, headers=self.headers) as resp:
                     test = await resp.read()
                     with open(str(bundled_data_path(self) / "FortuneCookieNF.ttf"), "wb") as f:
                         f.write(test)
@@ -274,15 +245,18 @@ class Horoscope(BaseCog):
         await ctx.send("Font has been saved")
 
     def fortune_process(self, fortune):
-        img = Image.open(str(bundled_data_path(self) / "cookie.png"))
-        draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype(str(bundled_data_path(self) / "FortuneCookieNF.ttf"), 15)
-        line = fortune.split()
-        sep = " "
-        line1 = sep.join(line[:5])
-        line2 = sep.join(line[5:10])
-        line3 = sep.join(line[10:])
-        draw.text((134, 165), line1, (0, 0, 0), font=font, align="center")
-        draw.text((134, 180), line2, (0, 0, 0), font=font, align="center")
-        draw.text((134, 195), line3, (0, 0, 0), font=font, align="center")
-        img.save(str(bundled_data_path(self) / "cookie-edit.png"))
+        with Image.open(str(bundled_data_path(self) / "cookie.png")) as img:
+            draw = ImageDraw.Draw(img)
+            font = ImageFont.truetype(str(bundled_data_path(self) / "FortuneCookieNF.ttf"), 15)
+            line = fortune.split()
+            sep = " "
+            line1 = sep.join(line[:5])
+            line2 = sep.join(line[5:10])
+            line3 = sep.join(line[10:])
+            draw.text((134, 165), line1, (0, 0, 0), font=font, align="center")
+            draw.text((134, 180), line2, (0, 0, 0), font=font, align="center")
+            draw.text((134, 195), line3, (0, 0, 0), font=font, align="center")
+            img_buffer = BytesIO()
+            img.save(img_buffer, format='PNG')
+            img_buffer.seek(0)
+            return img_buffer

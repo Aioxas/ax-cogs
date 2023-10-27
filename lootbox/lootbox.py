@@ -4,10 +4,13 @@ import discord
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 
-BaseCog = getattr(commands, "Cog", object)
 
+class Lootbox(commands.Cog):
+    """Create and simulate lootboxes."""
 
-class Lootbox(BaseCog):
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete."""
+        return
 
     default_guild_settings = {"boxes": {}}
 
@@ -17,13 +20,13 @@ class Lootbox(BaseCog):
 
         self._lootbox.register_guild(**self.default_guild_settings)
 
-    @commands.group(pass_context=True)
+    @commands.group()
     async def box(self, ctx):
         """Box related commands"""
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
-    @box.command(pass_context=True)
+    @box.command()
     async def add(self, ctx, name: str, content: str, multi: int = None):
         """Adds items to a box
            Usage:
@@ -35,7 +38,7 @@ class Lootbox(BaseCog):
         boxes = await self._lootbox.guild(guild).boxes()
         counter = 0
         if name not in boxes:
-            await ctx.send("Box doesn't exist, please use [p]box create first")
+            await ctx.send(f"Box doesn't exist, please use `{ctx.prefix}box create` first")
             return
         if ", " in content:
             content = content.split(", ")
@@ -58,7 +61,7 @@ class Lootbox(BaseCog):
         )
         await self._lootbox.guild(guild).boxes.set(boxes)
 
-    @box.command(pass_context=True)
+    @box.command()
     async def create(self, ctx, name: str, output: int, *, content: str):
         """Creates a box in the current server
            [p]box create winter 6 Key, Unsealing Charm, Black Padded Coat, Infernal Horn"""
@@ -85,13 +88,13 @@ class Lootbox(BaseCog):
         await self._lootbox.guild(guild).boxes.set(boxes)
 
     @checks.mod_or_permissions()
-    @box.group(pass_context=True)
+    @box.group()
     async def edit(self, ctx):
         """Allows editing of box names or output"""
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
-    @edit.command(pass_context=True)
+    @edit.command()
     async def name(self, ctx, name: str, newname: str):
         """Allows editing of the boxes' name
            winter = current name
@@ -102,8 +105,8 @@ class Lootbox(BaseCog):
         boxes = await self._lootbox.guild(guild).boxes()
         if name not in boxes:
             await ctx.send(
-                "Box doesn't exist, please make sure the spelling is correct and"
-                " that it's found in [p]box list"
+                f"Box doesn't exist, please make sure the spelling is correct and"
+                f" that it's found in `{ctx.prefix}box list`"
             )
             return
         newname = newname.lower()
@@ -114,7 +117,7 @@ class Lootbox(BaseCog):
         await ctx.send("{} has been renamed to {}".format(name, newname))
         await self._lootbox.guild(guild).boxes.set(boxes)
 
-    @edit.command(pass_context=True)
+    @edit.command()
     async def output(self, ctx, name: str, output: int):
         """Allows adjusting how many items
            come out of the simulated lootbox
@@ -124,15 +127,15 @@ class Lootbox(BaseCog):
         boxes = await self._lootbox.guild(guild).boxes()
         if name not in boxes:
             await ctx.send(
-                "Box doesn't exist, please make sure the spelling is correct and"
-                " that it's found in [p]box list"
+                f"Box doesn't exist, please make sure the spelling is correct and"
+                f" that it's found in `{ctx.prefix}box list`"
             )
             return
         boxes[name]["output"] = output
         await ctx.send("{} box's output has changed to {}".format(name, output))
         await self._lootbox.guild(guild).boxes.set(boxes)
 
-    @box.command(pass_context=True)
+    @box.command()
     async def info(self, ctx, name: str):
         """Shows info on the box, it's contents
             and the probability of getting an item"""
@@ -141,8 +144,8 @@ class Lootbox(BaseCog):
         boxes = await self._lootbox.guild(guild).boxes()
         if name not in boxes:
             await ctx.send(
-                "Please make sure that the name is spelled correctly and "
-                "that you can find it in [p]box list"
+                f"Box doesn't exist, please make sure the spelling is correct and"
+                f" that it's found in `{ctx.prefix}box list`"
             )
             return
         outputs = {}
@@ -176,14 +179,14 @@ class Lootbox(BaseCog):
 
         await ctx.send(embed=embed)
 
-    @box.command(pass_context=True)
+    @box.command()
     async def list(self, ctx):
         """Shows existing boxes in the current server"""
         guild = ctx.guild
         boxes = await self._lootbox.guild(guild).boxes()
         if len(boxes) < 1:
             await ctx.send(
-                "No boxes have been created for this server yet, please create some using [p]box create"
+                f"No boxes have been created for this server yet, please create some using `{ctx.prefix}box create`"
                 " first, thanks"
             )
             return
@@ -191,7 +194,7 @@ class Lootbox(BaseCog):
         await ctx.send("Here are this server's boxes:\n{}".format("\n".join(boxes)))
 
     @checks.is_owner()
-    @box.command(pass_context=True)
+    @box.command()
     async def remove(self, ctx, name: str):
         """Deletes existing boxes"""
         name = name.lower()
@@ -199,15 +202,15 @@ class Lootbox(BaseCog):
         boxes = await self._lootbox.guild(guild).boxes()
         if name not in boxes:
             await ctx.send(
-                "Please make sure that the name is spelled correctly and "
-                "that you can find it in [p]box list"
+                f"Please make sure that the name is spelled correctly and "
+                f"that you can find it in `{ctx.prefix}box list`"
             )
             return
         boxes.pop(name, None)
         await self._lootbox.guild(guild).boxes.set(boxes)
         await ctx.send("Box has been removed")
 
-    @box.command(pass_context=True)
+    @box.command()
     async def sim(self, ctx, name: str, item: str = None):
         """Simulates the opening of a box (It won't be as accurate as an actual lootbox)
            If an item is always in a box, put the item name spelled correctly,
@@ -219,8 +222,8 @@ class Lootbox(BaseCog):
         boxes = await self._lootbox.guild(guild).boxes()
         if name not in boxes:
             await ctx.send(
-                "Please make sure that the name is spelled correctly and "
-                "that you can find it in [p]box list"
+                f"Please make sure that the name is spelled correctly and "
+                f"that you can find it in `{ctx.prefix}box list`"
             )
             return
         box = list(boxes[name]["content"].keys())
@@ -228,7 +231,7 @@ class Lootbox(BaseCog):
         values = list(boxes[name]["content"].values())
         value = sum(values)
         if sum(values) == 0:
-            ctx.send("add some items to your box first using [p]box add <name> <content> <multi>")
+            await ctx.send(f"Add some items to your box first using `{ctx.prefix}box add <name> <content> <multi>`")
             return
         for x in range(len(values)):
             values[x] = values[x] / value

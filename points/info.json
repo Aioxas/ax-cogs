@@ -3,12 +3,8 @@
     "install_msg": "Thanks for installing this cog.",
     "name": "Points",
     "short": "Keep a tally of points",
-    "requirements": [
-        "Tabulate"
-    ],
-    "tags": [
-        "Utilities"
-    ],
-    "description": "Easily keep track of how many points people have. [p]add_member and [p]help Points should help you",
+    "requirements": ["tabulate"],
+    "tags": ["points", "count", "utility"],
+    "description": "Easily keep track of how many points people have. [p]help points should help you, after loading the cog.",
     "type": "COG"
 }

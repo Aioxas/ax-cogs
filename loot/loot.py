@@ -3,10 +3,13 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.bot import Red
 
-BaseCog = getattr(commands, "Cog", object)
 
+class Loot(commands.Cog):
+    """Keep track of text-based items."""
 
-class Loot(BaseCog):
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete."""
+        return
 
     default_guild_settings = {}
 
@@ -15,26 +18,26 @@ class Loot(BaseCog):
         self._loot = Config.get_conf(self, 9741981201)
         self._loot.register_guild(**self.default_guild_settings)
 
-    @commands.group(pass_context=True)
+    @commands.group()
     async def loot(self, ctx):
         """Loot related commands"""
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
-    @loot.command(pass_context=True)
+    @loot.command()
     async def add(self, ctx, name: str, char: str, price: int):
         """Adds players and amounts paid to an item"""
         name = name.lower()
         guild = ctx.guild
         loot = await self._loot.guild(guild).all()
         if name not in loot:
-            await ctx.send("item doesn't exist, please use [p]loot create first")
+            await ctx.send(f"Item doesn't exist, please use `{ctx.prefix}loot create` first")
             return
         loot[name][char] = price
         await ctx.send("{} paid {} for {}".format(char, price, name))
         await self._loot.guild(guild).set(loot)
 
-    @loot.command(pass_context=True)
+    @loot.command()
     async def create(self, ctx, name: str):
         """Creates an item in the current guild."""
         name = name.lower()
@@ -47,7 +50,7 @@ class Loot(BaseCog):
         await ctx.send("{} has been added.".format(name))
         await self._loot.guild(guild).set(loot)
 
-    @loot.command(pass_context=True)
+    @loot.command()
     async def info(self, ctx, name: str):
         """Shows who has invested in the item"""
         name = name.lower()
@@ -67,21 +70,21 @@ class Loot(BaseCog):
         embed.add_field(name="__Price Paid__", value=gold)
         await ctx.send(embed=embed)
 
-    @loot.command(pass_context=True)
+    @loot.command()
     async def list(self, ctx):
         """Shows existing loot in the current guild"""
         guild = ctx.guild
         loot = await self._loot.guild(guild).all()
         if len(loot) < 1:
             await ctx.send(
-                "No items have been created for this guild yet, please create some using [p]item create"
+                f"No items have been created for this guild yet, please create some using `{ctx.prefix}item create"
                 " first, thanks"
             )
             return
         items = loot.keys()
         await ctx.send("Here are this guild's items:\n{}".format("\n".join(items)))
 
-    @loot.command(pass_context=True, hidden=True)
+    @loot.command(hidden=True)
     async def remove(self, ctx, name: str, char: str = None):
         """Deletes existing characters in an item or items"""
         name = name.lower()
@@ -89,8 +92,8 @@ class Loot(BaseCog):
         loot = await self._loot.guild(guild).all()
         if name not in loot.keys():
             await ctx.send(
-                "Please make sure that the name is spelled correctly and "
-                "that you can find it in [p]loot list"
+                f"Please make sure that the name is spelled correctly and "
+                "that you can find it in `{ctx.prefix}loot list`"
             )
             return
         if char is None:

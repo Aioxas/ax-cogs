@@ -4,6 +4,6 @@
     "NAME" : "Loot",
     "SHORT" : "Keeping tabs on who paid for loot",
     "REQUIREMENTS" : [],
-    "TAGS" : ["Utilities"],
+    "TAGS" : ["utility", "loot", "tracking"],
     "DESCRIPTION" : "Keeping tabs on who paid for loot"
 }

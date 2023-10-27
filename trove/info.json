@@ -1,6 +1,7 @@
 {
     "author": ["Aioxas/Axas"],
     "description": "Trove Simulator, BnS",
+    "hidden": true,
     "name": "Creates, and simulates trove openings",
     "tags": [
         "trove",
