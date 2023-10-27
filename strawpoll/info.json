@@ -1,5 +1,6 @@
 {
     "author": ["Aioxas"],
+    "hidden": true,
     "install_msg": "Thanks for installing this cog.",
     "name": "Strawpoll",
     "short": "Create a strawpoll",

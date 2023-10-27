@@ -4,6 +4,6 @@
     "NAME" : "longcat",
     "SHORT" : "All hail Longcat. Based on canapin's longcat js command.",
     "REQUIREMENTS" : ["Pillow"],
-    "TAGS" : ["Fun"],
+    "TAGS" : ["longcat", "fun"],
     "DESCRIPTION" : "Longcats man. Looooongcats"
 }

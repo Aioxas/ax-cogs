@@ -9,11 +9,13 @@ from redbot.core.utils.chat_formatting import box
 
 from tabulate import tabulate
 
-BaseCog = getattr(commands, "Cog", object)
 
+class Points(commands.Cog):
+    """Point system"""
 
-class Points(BaseCog):
-    """Point System"""
+    async def red_delete_data_for_user(self, **kwargs):
+        """Nothing to delete."""
+        return
 
     default_guild_settings = {"bookkeeper": [], "members": {}}
 
@@ -23,22 +25,22 @@ class Points(BaseCog):
 
         self._points.register_guild(**self.default_guild_settings)
 
-    @commands.group(pass_context=True)
+    @commands.group()
     async def points(self, ctx):
         """Points settings"""
         if ctx.invoked_subcommand is None:
             await ctx.send_help()
 
-    @points.group(pass_context=True)
+    @points.group()
     async def member(self, ctx):
         """Member settings"""
         if ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group):
             await ctx.send_help()
 
-    def permcheck(self, ctx):
+    async def permcheck(self, ctx):
         guild = ctx.guild
         author = ctx.author
-        bookkeeper = self._points.guild(guild).bookkeeper()
+        bookkeeper = await self._points.guild(guild).bookkeeper()
         if author.id != guild.owner.id:
             if author.id not in bookkeeper:
                 return False
@@ -96,7 +98,7 @@ class Points(BaseCog):
                 elif x.id in members:
                     await ctx.send("{} is already in the list".format(x.display_name))
                 elif x.id not in members:
-                    members[x.id] = OrderedDict(
+                    members[str(x.id)] = OrderedDict(
                         {
                             "Name": x.display_name,
                             "Balance": 0,
@@ -113,7 +115,7 @@ class Points(BaseCog):
                 await ctx.send("{} is already in the list".format(name.display_name))
                 return
             elif name.id not in members:
-                members[name.id] = OrderedDict(
+                members[str(name.id)] = OrderedDict(
                     {
                         "Name": name.display_name,
                         "Balance": 0,
@@ -124,14 +126,14 @@ class Points(BaseCog):
                 await self._points.guild(guild).members.set(members)
                 await ctx.send("{} has been added to the list.".format(name.display_name))
 
-    @member.command(pass_context=True, hidden=True)
+    @member.command(hidden=True)
     async def remove(self, ctx, *, name=None):
         """Deletes a member from the list, defaults to author"""
         guild = ctx.guild
         author = ctx.author
         names = None
         namesp = None
-        if not self.permcheck(ctx):
+        if not await self.permcheck(ctx):
             return
         if name is None:
             name = author
@@ -195,12 +197,12 @@ class Points(BaseCog):
                 await self._points.guild(guild).members.set(members)
                 await ctx.send("{} has been deleted from the list.".format(name.display_name))
 
-    @points.command(pass_context=True, hidden=True)
+    @points.command(hidden=True)
     async def reset(self, ctx):
         """Allows to wipe the guild's roster list, only usable by bookkeepers or guild owner"""
         guild = ctx.guild
         author = ctx.author
-        if not self.permcheck(ctx):
+        if not await self.permcheck(ctx):
             return
         await ctx.send("Are you sure? This action is irreversible. Answer yes or no")
 
@@ -218,7 +220,7 @@ class Points(BaseCog):
             await ctx.send("Action canceled.")
             return
 
-    @points.command(name="add", pass_context=True)
+    @points.command(name="add")
     async def _add(self, ctx, points: int, *, name=None):
         """Adds points to a member or multiple members. Defaults to author.
            Use names, not nicknames to find them.
@@ -229,7 +231,7 @@ class Points(BaseCog):
         names = None
         namesp = None
         members = await self._points.guild(guild).members()
-        if not self.permcheck(ctx):
+        if not await self.permcheck(ctx):
             return
         if name is None:
             name = author
@@ -272,27 +274,27 @@ class Points(BaseCog):
                     continue
                 elif x.id not in self._points.guild(guild).members():
                     await ctx.send(
-                        "{} was not found. Please add them first using points member add"
-                        " <discord name or Nickname>".format(x.display_name)
+                        f"{x.display_name} was not found. Please add them first using `{ctx.prefix}points member add`"
+                        " <Discord name or nickname>"
                     )
                 else:
-                    members[x.id]["Lifetime Gain"] += points
-                    members[x.id]["Balance"] += points
+                    members[str(x.id)]["Lifetime Gain"] += points
+                    members[str(x.id)]["Balance"] += points
                     await ctx.send("{} points added for {}".format(points, x.name))
                 await asyncio.sleep(1)
         else:
-            if name.id not in self._points.guild(guild).members():
+            if str(name.id) not in await self._points.guild(guild).members():
                 await ctx.send(
-                    "{} is not in the list, please register first using points member add"
-                    " <Discord name or nickname>".format(namea)
+                    f"{namea} is not in the list, please register first using `{ctx.prefix}points member add"
+                    " <Discord name or nickname>`"
                 )
                 return
-            members[name.id]["Lifetime Gain"] += points
-            members[name.id]["Balance"] += points
+            members[str(name.id)]["Lifetime Gain"] += points
+            members[str(name.id)]["Balance"] += points
             await ctx.send("{} points added for {}".format(points, name.name))
         await self._points.guild(guild).members.set(members)
 
-    @points.command(name="remove", pass_context=True)
+    @points.command(name="remove")
     async def _remove(self, ctx, points: int, *, name=None):
         """Takes away points from a member or multiple members. Defaults to author
            Usage example:
@@ -301,7 +303,7 @@ class Points(BaseCog):
         author = ctx.author
         names = None
         members = await self._points.guild(guild).members()
-        if not self.permcheck(ctx):
+        if not await self.permcheck(ctx):
             return
         if name is None:
             name = author
@@ -344,8 +346,8 @@ class Points(BaseCog):
                     continue
                 elif x.id not in members:
                     await ctx.send(
-                        "{} was not found. Please add them first using points member add"
-                        " <discord name or Nickname>".format(x.display_name)
+                        f"{x.display_name} was not found. Please add them first using `{ctx.prefix}points member add"
+                        " <Discord name or nickname>`"
                     )
                 else:
 
@@ -365,14 +367,14 @@ class Points(BaseCog):
             await ctx.send("{} points substracted from {}".format(points, name.name))
         await self._points.guild(guild).members.set(members)
 
-    @points.command(name="list", pass_context=True)
+    @points.command(name="list")
     async def _list(self, ctx):
         """Allows to show the balance of all the registered users."""
         guild = ctx.guild
         db = await self._points.guild(guild).members()
         if len(db) < 1:
             await ctx.send(
-                "List is empty, please add members first using [p]points add <Discord name or nickname>"
+                f"List is empty, please add members first using `{ctx.prefix}points add <Discord name or nickname>`"
             )
             return
         try:
@@ -412,7 +414,7 @@ class Points(BaseCog):
         else:
             await ctx.send(box(tabulate(rows, headers=columns), lang="prolog"))
 
-    @points.command(pass_context=True)
+    @points.command()
     async def balance(self, ctx, name: discord.Member = None):
         """Allows to show the balance of a user. Defaults to author."""
         guild = ctx.guild
@@ -439,14 +441,14 @@ class Points(BaseCog):
                 )
             )
 
-    @points.group(pass_context=True)
+    @points.group()
     @checks.guildowner()
     async def keeper(self, ctx):
-        """bookkeeper settings"""
+        """Bookkeeper settings."""
         if ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group):
             await ctx.send_help()
 
-    @keeper.command(name="add", pass_context=True)
+    @keeper.command(name="add")
     async def __add(self, ctx, name: discord.Member = None):
         """Adds a bookkeeper to the bookkeeping list.
            This allows them to handle things such as adding/removing points/members and resetting the roster"""
@@ -462,7 +464,7 @@ class Points(BaseCog):
         await self._points.guild(guild).bookkeeper.set(bookkeeper)
         await ctx.send("{} has been registered as a bookkeeper.".format(name.display_name))
 
-    @keeper.command(name="remove", pass_context=True)
+    @keeper.command(name="remove")
     async def __remove(self, ctx, name: discord.Member = None):
         """Removes a bookkeeper from the bookkeeping list"""
         guild = ctx.guild
@@ -486,7 +488,7 @@ class Points(BaseCog):
         await self._points.guild(guild).bookkeeper.set(bookkeeper)
         await ctx.send("{} has been removed from the list of bookkeepers")
 
-    @keeper.command(name="list", pass_context=True)
+    @keeper.command(name="list")
     async def __list(self, ctx):
         """Shows the current list of bookkeepers"""
         guild = ctx.guild

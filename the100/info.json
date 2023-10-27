@@ -1,11 +1,11 @@
 {
-    "AUTHOR" : ["Aioxas"],
-    "INSTALL_MSG" : "Thanks for installing my cog. \n[p]help The100 to start using the cog.",
-    "NAME" : "the100",
-    "SHORT" : "Bringing the100.io API to Discord",
-    "REQUIREMENTS" : [],
-    "TAGS" : ["Fun"],
-    "DISABLED": true,
-    "HIDDEN": true,
-    "DESCRIPTION" : "Allows players to access the100.io API through Discord"
+    "author" : ["Aioxas"],
+    "hidden": true,
+    "install_msg" : "Thanks for installing my cog. \n[p]help The100 to start using the cog.",
+    "name" : "the100",
+    "short" : "Bringing the100.io API to Discord",
+    "requirements" : [],
+    "tags" : ["the100"],
+    "disabled": true,
+    "description" : "Allows players to access the100.io API through Discord"
 }
