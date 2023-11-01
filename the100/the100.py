@@ -35,10 +35,7 @@ class The100:
             return False
         if author.id != self.bot.settings.owner \
                 or author.id != server.owner.id:
-            if role not in [r.name.lower() for r in author.roles]:
-                return False
-            else:
-                return True
+            return role in [r.name.lower() for r in author.roles]
         else:
             return True
 
@@ -120,9 +117,7 @@ class The100:
                       "group_only", "party_size", "light_level", "platform_formatted",
                       "start_time", "has_spots_open", "confirmed_sessions"]:
                 if y == "confirmed_sessions":
-                    users = []
-                    for z in x[y]:
-                        users.append(z["user"]["gamertag"])
+                    users = [z["user"]["gamertag"] for z in x[y]]
                     msg += "Users: " + ", ".join(users[:-2] + [" and ".join(users[-2:])]) + "\n"
                 elif y == "start_time":
                     time = "".join(str(x[y]).rsplit(":", 1))
@@ -165,9 +160,9 @@ class The100:
     @checks.serverowner()
     async def set(self, ctx):
         """Settings"""
-        server = ctx.message.server
         if ctx.invoked_subcommand is None or \
                 isinstance(ctx.invoked_subcommand, commands.Group):
+            server = ctx.message.server
             await send_cmd_help(ctx)
             await self.bot.say("Token: {}\nRole: {}```"
                                .format("Set" if self.db[server.id]["token"] else "Not Set",
@@ -188,15 +183,13 @@ class The100:
                                                          author=ctx.message.author)
                 if answer is None:
                     await self.bot.say("Action cancelled")
-                    return
                 elif answer.content.lower().strip() == "yes":
                     self.db[server.id]["token"] = token
                     await self.bot.say("Token overwritten")
                     dataIO.save_json(self.json, self.db)
-                    return
                 else:
                     await self.bot.say("Action cancelled")
-                    return
+                return
             else:
                 self.db[server.id]["token"] = token
         dataIO.save_json(self.json, self.db)
@@ -220,15 +213,13 @@ class The100:
                                                          author=ctx.message.author)
                 if answer is None:
                     await self.bot.say("Action cancelled")
-                    return
                 elif answer.content.lower().strip() == "yes":
                     self.db[server.id]["role"] = role
                     await self.bot.say("role overwritten")
                     dataIO.save_json(self.json, self.db)
-                    return
                 else:
                     await self.bot.say("Action cancelled")
-                    return
+                return
             else:
                 self.db[server.id]["role"] = role
         dataIO.save_json(self.json, self.db)

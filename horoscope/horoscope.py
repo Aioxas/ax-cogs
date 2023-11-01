@@ -138,14 +138,14 @@ class Horoscope:
     @commands.cooldown(10, 60, commands.BucketType.user)
     async def _cookie(self):
         """Retrieves a random fortune cookie fortune."""
-        regex = ["class=\"cookie-link\">([^`]*?)<\/a>", "<p>([^`]*?)<\/p>",
-                 "(?:\\\\['])", "<strong>([^`]*?)<\/strong>",
-                 "<\/strong><\/a>([^`]*?)<br>",
-                 "3\)<\/strong><\/a>([^`]*?)<\/div>"]
         url = "http://www.fortunecookiemessage.com"
         await self.file_check()
         async with self.session.get(url, headers={"encoding": "utf-8"}) as resp:
             test = str(await resp.text())
+            regex = ["class=\"cookie-link\">([^`]*?)<\/a>", "<p>([^`]*?)<\/p>",
+                     "(?:\\\\['])", "<strong>([^`]*?)<\/strong>",
+                     "<\/strong><\/a>([^`]*?)<br>",
+                     "3\)<\/strong><\/a>([^`]*?)<\/div>"]
             fortune = re.findall(regex[0], test)
             fortest = re.match("<p>", fortune[0])
             if fortest is not None:

@@ -58,10 +58,7 @@ class AdvancedGoogle:
             unicoded = test.decode("unicode_escape")
             query_find = self.regex[0].findall(unicoded)
             try:
-                if images:
-                    url = choice(query_find)
-                elif not images:
-                    url = query_find[0]
+                url = choice(query_find) if images else query_find[0]
                 error = False
             except IndexError:
                 error = True

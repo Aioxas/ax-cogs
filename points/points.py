@@ -50,13 +50,7 @@ class Points:
             self.db[server.id]["bookkeeper"] = []
             self.save_db()
             bookkeeper = []
-        if author.id != server.owner.id:
-            if author.id not in bookkeeper:
-                return False
-            else:
-                return True
-        else:
-            return True
+        return author.id == server.owner.id or author.id in bookkeeper
 
     @member.command(pass_context=True)
     async def add(self, ctx, *, name=None):
@@ -87,11 +81,11 @@ class Points:
             if name is None:
                 name = discord.utils.find(
                     lambda m: m.name == name, server.members)
-                if name is None:
-                    await self.bot.say("{} was not found, please check the spelling and also make "
-                                       "sure that the member name being entered is a member in your Discord and "
-                                       "that its the same as their Discord name / nickname.".format(namea))
-                    return
+            if name is None:
+                await self.bot.say("{} was not found, please check the spelling and also make "
+                                   "sure that the member name being entered is a member in your Discord and "
+                                   "that its the same as their Discord name / nickname.".format(namea))
+                return
         if server.id not in self.db:
             self.db[server.id] = {}
         if not name:
@@ -106,7 +100,7 @@ class Points:
                     continue
                 elif x.id in self.db[server.id]:
                     await self.bot.say("{} is already in the list".format(x.display_name))
-                elif x.id not in self.db[server.id]:
+                else:
                     self.db[server.id][x.id] = OrderedDict(
                         {"Name": x.display_name, "Balance": 0, "Lifetime Gain": 0, "Lifetime Loss": 0})
                     self.save_db()
@@ -117,7 +111,7 @@ class Points:
             if name.id in self.db[server.id]:
                 await self.bot.say("{} is already in the list".format(name.display_name))
                 return
-            elif name.id not in self.db[server.id]:
+            else:
                 self.db[server.id][name.id] = OrderedDict(
                     {"Name": name.display_name, "Balance": 0, "Lifetime Gain": 0, "Lifetime Loss": 0})
                 self.save_db()
@@ -150,14 +144,23 @@ class Points:
             name = discord.utils.find(lambda m: m.display_name == name, server.members)
             if name is None:
                 name = discord.utils.find(lambda m: m.name == name, server.members)
-                if name is None:
-                    await self.bot.say("{} was not found, please check the spelling and also make "
-                                       "sure that the member name being entered is a member in your Discord and "
-                                       "that its the same as their Discord name / nickname.".format(namea))
-                    return
+            if name is None:
+                await self.bot.say("{} was not found, please check the spelling and also make "
+                                   "sure that the member name being entered is a member in your Discord and "
+                                   "that its the same as their Discord name / nickname.".format(namea))
+                return
         if server.id not in self.db:
             self.db[server.id] = {}
-        if not name:
+        if name:
+            if name.id in self.db[server.id]:
+                del self.db[server.id][name.id]
+                self.save_db()
+                await self.bot.say("{} has been deleted from the list.".format(name.display_name))
+            else:
+                await self.bot.say("{} is not in the list, please make sure they have been added first to "
+                                   "the list.".format(name.display_name))
+                return
+        else:
             counter = -1
             for x in names:
                 counter += 1
@@ -170,20 +173,11 @@ class Points:
                 elif x.id not in self.db[server.id]:
                     await self.bot.say("{} is not in the list, please make sure they have been added first to "
                                        "the list.".format(x.display_name))
-                elif x.id in self.db[server.id]:
+                else:
                     del self.db[server.id][x.id]
                     self.save_db()
                     await self.bot.say("{} has been removed from the list.".format(x.display_name))
                 await asyncio.sleep(1)
-        else:
-            if name.id not in self.db[server.id]:
-                    await self.bot.say("{} is not in the list, please make sure they have been added first to "
-                                       "the list.".format(name.display_name))
-                    return
-            elif name.id in self.db[server.id]:
-                del self.db[server.id][name.id]
-                self.save_db()
-                await self.bot.say("{} has been deleted from the list.".format(name.display_name))
 
     @points.command(pass_context=True, hidden=True)
     async def reset(self, ctx):
@@ -239,11 +233,11 @@ class Points:
             if name is None:
                 name = discord.utils.find(
                     lambda m: m.name == name, server.members)
-                if name is None:
-                    await self.bot.say("{} was not found, please check the spelling and also make "
-                                       "sure that the member name being entered is a member in your Discord and "
-                                       "that its the same as their Discord name / nickname.".format(namea))
-                    return
+            if name is None:
+                await self.bot.say("{} was not found, please check the spelling and also make "
+                                   "sure that the member name being entered is a member in your Discord and "
+                                   "that its the same as their Discord name / nickname.".format(namea))
+                return
         if server.id not in self.db:
             self.db[server.id] = {}
         if not name:
@@ -306,11 +300,11 @@ class Points:
             if name is None:
                 name = discord.utils.find(
                     lambda m: m.name == name, server.members)
-                if name is None:
-                    await self.bot.say("{} was not found, please check the spelling and also make "
-                                       "sure that the member name being entered is a member in your Discord and "
-                                       "that its the same as their Discord name / nickname.".format(namea))
-                    return
+            if name is None:
+                await self.bot.say("{} was not found, please check the spelling and also make "
+                                   "sure that the member name being entered is a member in your Discord and "
+                                   "that its the same as their Discord name / nickname.".format(namea))
+                return
         if server.id not in self.db:
             self.db[server.id] = {}
         if not name:

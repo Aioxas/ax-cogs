@@ -40,15 +40,12 @@ class Lootbox:
             content = content.split(", ")
         elif "," in content:
             content = content.split(",")
+        if multi < 0:
+            neg = True
+            multi = abs(multi)
         if multi and type(content) is not list:
-            if multi < 0:
-                neg = True
-                multi = abs(multi)
             content = [content.lower()] * multi
         else:
-            if multi < 0:
-                neg = True
-                multi = abs(multi)
             content = content * multi
         print(content)
         for x in content:
@@ -140,7 +137,7 @@ class Lootbox:
            Names are fixed when they are added."""
         server = ctx.message.server
         items = items.split(", ")
-        itemis = dict()
+        itemis = {}
         for item in items:
             item, value = item.split(" ")
             item = item.replace("_", " ").lower()
@@ -171,7 +168,7 @@ class Lootbox:
            Names are fixed when they are added."""
         server = ctx.message.server
         items = items.split(", ")
-        itemis = dict()
+        itemis = {}
         for item in items:
             item, value = item.split(" ")
             item = item.replace("_", " ").lower()
@@ -293,11 +290,11 @@ def check_folders():
 
 
 def check_files():
-    # create servers.json if not there
-    # put in default values
-    default = {}
     if not os.path.isfile('data/lootbox/servers.json'):
         print('Creating default lootbox servers.json...')
+        # create servers.json if not there
+        # put in default values
+        default = {}
         dataIO.save_json('data/lootbox/servers.json', default)
 
 
