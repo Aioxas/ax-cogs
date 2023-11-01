@@ -19,7 +19,9 @@
     "permissions": [
         "send_messages"
     ],
-    "requirements": [],
+    "requirements": [
+        "aiohttp_socks"
+    ],
     "required_cogs": {},
     "short": "Retrieves results from Google",
     "tags": [

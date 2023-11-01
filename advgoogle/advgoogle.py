@@ -1,10 +1,11 @@
-from redbot.core import checks, commands
+from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.data_manager import cog_data_path
 from redbot.core.utils.chat_formatting import inline
 
-from aiohttp import ClientSession
-from discord import File, Message
+from aiohttp import ClientSession, ClientConnectorError
+from aiohttp_socks import ProxyConnector, ProxyConnectionError, ProxyTimeoutError
+from discord import File
 from glob import glob
 from random import choice
 from re import compile
@@ -15,16 +16,24 @@ from uuid import uuid4
 
 
 class AdvancedGoogle(commands.Cog):
+
+    default_guild_settings = {"socks5": "", "socks4": "", "searches_in_progress": {}}
+
+    ref_id_as_key_dict = {
+        "proxy_cancel": False,
+    }
+
     def __init__(self, bot: Red):
         self.bot = bot
-        self.session = ClientSession(loop=self.bot.loop)
+        self.session = ClientSession()
         self.regex = [
             compile(r",\"ou\":\"([^`]*?)\""),
             compile(r"class=\"r\"><a href=\"([^`]*?)\""),
             compile(r"Please click <a href=\"([^`]*?)\">here</a>"),
-            compile(r"\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}"),
+            compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"),
             compile(r",\[\"([^`]*?)\",\d{1,4},\d{1,4}\]"),
             compile(r"alt=\"\" src=\"([^`]*?)\""),
+            compile(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:\d{4,5})\n"),
             # compile(r"style=\"border:1px solid #ccc;padding:1px\" src=\"([^`]*?)\""),
             # compile(r"<div class=\"kCrYT\"><a href=\"/url?q=([^`]*?)&amp;sa=U"),
         ]
@@ -33,6 +42,25 @@ class AdvancedGoogle(commands.Cog):
             " AppleWebKit/537.36 (KHTML, like Gecko)"
             " Chrome/69.0.3497.100 Safari/537.36"
         }
+        self._google = Config.get_conf(self, 2636912627)
+        self._google.register_guild(**self.default_guild_settings)
+
+    @commands.guild_only()
+    @commands.command()
+    async def googlecancel(self, ctx: commands.Context) -> None:
+        """Cancels a running google search for the current guild, may need to be ran multiple times."""
+        # default off.
+        guild = ctx.guild
+        proxy_cancel = not await self._google.guild(guild).proxy_cancel()
+        await self._google.guild(guild).proxy_cancel.set(proxy_cancel)
+
+        # for a toggle, settings should save here in case bot fails to send message
+        if proxy_cancel:
+            await ctx.send(
+                "Check console after 60s to see if new proxy messages appear"
+            )
+        else:
+            await ctx.send("")
 
     @checks.is_owner()
     @commands.command()
@@ -184,49 +212,70 @@ class AdvancedGoogle(commands.Cog):
             uri = url + "/search?hl=en&q="
             uir = self.quote(uri, text)
             refID = str(uuid4())
-            query_find = await self.result_returner(uir, refID, 0)
-            if "\n" not in query_find and query_find != "":
-                uir = url + query_find.replace("&amp;", "&")
-                query_find = await self.result_returner(uir, refID, 1)
+            query_find = await self.query_finder(uir, refID, url, None)
+            if query_find == "":
+                async with self.session.get("https://www.socks-proxy.net", headers=self.option) as resp:
+                    test = await resp.text()
+                    url_text = self.regex[6].findall(test)
+                    counter = 1
+                    url_len = len(url_text)
+                    for proxy_url in url_text:
+                        if self.proxy_cancel:
+                            self.proxy_cancel = False
+                            break
+                        print(f"Trying proxy #{counter} of {url_len} proxies")
+                        counter += 1
+                        try:
+                            conn = ProxyConnector.from_url(f"socks4://{proxy_url}")
+                            query_find = await self.query_finder(uir, refID, url, conn)
+                            if query_find != "":
+                                break
+                        except ProxyConnectionError:
+                            continue
             return query_find, refID  # End of generic search
 
-    async def result_returner(self, uir: str, refID: str, attempt: int) -> str:
-        debug_location = cog_data_path(self) / "debug"
-        async with self.session.get(uir, headers=self.option) as resp:
-            test = await resp.text()
-            if not path.exists(str(debug_location)):
-                mkdir(str(debug_location))
-            with open(
-                str(debug_location / f"{refID}_{attempt}.html"), "w", encoding="utf-8"
-            ) as f:
-                ip_find = self.regex[3].findall(test)
-                for info in ip_find:
-                    test.replace(info, "0.0.0.0")
-                f.write(test)
-            result_find = self.regex[1].findall(test)
-            if (
-                len(query_find := self.regex[2].findall(test)) == 1
-                and len(result_find) == 0
-            ):
-                return query_find[0]
-            try:
-                result_find = "\n".join(self.parsed(result_find))
-                return result_find
-            except IndexError:
-                return ""
+    async def query_finder(self, uir: str, refID: str, url: str, conn: ProxyConnector = None) -> str:
+        query_find = await self.result_returner(uir, refID, 0, conn)
+        if "\n" not in query_find and query_find != "":
+            uir = url + query_find.replace("&amp;", "&")
+            query_find = await self.result_returner(uir, refID, 1, conn)
+        return query_find
 
-    @commands.Cog.listener()
-    async def on_message(self, message: Message) -> None:
-        ctx = await self.bot.get_context(message, cls=commands.Context)
-        replacer_string = "ok "
-        str2find = replacer_string + "google "
-        text = message.clean_content.lower()
-        if ctx.valid or not text.startswith(str2find):
-            return
-        prefix = choice(await self.bot.get_valid_prefixes())
-        message.content = message.content.replace(replacer_string, prefix)
-        ctx.channel.typing()
-        await self.bot.process_commands(message)
+    async def result_returner(self, uir: str, refID: str, attempt: int, conn: ProxyConnector = None) -> str:
+        if conn is not None:
+            async with ClientSession(connector=conn) as session:
+                result = await self.session_runner(session, uir, refID, attempt)
+                return result
+        result = await self.session_runner(self.session, uir, refID, attempt)
+        return result
+
+    async def session_runner(self, session: ClientSession, uir: str, refID: str, attempt: int) -> str:
+        debug_location = cog_data_path(self) / "debug"
+        try:
+            async with session.get(uir, headers=self.option) as resp:
+                test = await resp.text()
+                if not path.exists(str(debug_location)):
+                    mkdir(str(debug_location))
+                with open(
+                    str(debug_location / f"{refID}_{attempt}.html"), "w", encoding="utf-8"
+                ) as f:
+                    ip_find = self.regex[3].findall(test)
+                    for info in ip_find:
+                        test.replace(info, "0.0.0.0")
+                    f.write(test)
+                result_find = self.regex[1].findall(test)
+                if (
+                    len(query_find := self.regex[2].findall(test)) == 1
+                    and len(result_find) == 0
+                ):
+                    return query_find[0]
+                try:
+                    result_find = "\n".join(self.parsed(result_find))
+                    return result_find
+                except IndexError:
+                    return ""
+        except (ConnectionResetError, ProxyTimeoutError, ClientConnectorError):
+            return ""
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
