@@ -1,14 +1,29 @@
 {
     "author": ["Aioxas"],
+    "description": "Emote has the ability to add or remove emotes that will trigger with a keyword. This keyword can be edited if an spelling error was made. This cog is per-server. You can also list the emotes based on specified names or amount per page to be shown.\n This cog was made possible by irdumb's sadface cog, as it provided an existing structure.",
+    "disabled": false,
+    "end_user_data_statement": "This cog does not persistently store data or metadata about users.",
     "install_msg": "Thanks for installing my cog. \n[p]help Emote to start using the cog.",
-    "name": "emote",
-    "short": "Local emote summoning, has the ability to add, remove, or list emotes. Based on irdumb's sadface cog",
+    "hidden": false,
+    "max_bot_version": "0.0.0",
+    "min_bot_version": "3.1.8",
+    "min_python_version": [
+        3,
+        7,
+        2
+    ],
+    "name": "Emote",
+    "permissions": [
+        "send_messages",
+        "attach_files"
+    ],
     "requirements": [
         "Pillow"
     ],
+    "required_cogs": {},
+    "short": "Local emote summoning, has the ability to add, remove, or list emotes. Based on irdumb's sadface cog",
     "tags": [
         "Utilities"
     ],
-    "description": "Emote has the ability to add or remove emotes that will trigger with a keyword. This keyword can be edited if an spelling error was made. This cog is per-server. You can also list the emotes based on specified names or amount per page to be shown.\n This cog was made possible by irdumb's sadface cog, as it provided an existing structure.",
     "type": "COG"
 }

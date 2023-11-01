@@ -1,23 +1,23 @@
-import aiohttp
-import itertools
-import asyncio
-import discord
-import os
-import re
-
-from PIL import Image
 from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.data_manager import cog_data_path
+
+from aiohttp import ClientSession
+from asyncio import TimeoutError
+from discord import File, Guild, Message
+from itertools import product
+from os import remove, rename, scandir
+from PIL import Image
+from re import compile, findall
+from typing import List
+
+
 # if this seem hard to read/understand, remove the comments. Might make it easier
 
-BaseCog = getattr(commands, "Cog", object)
 
-
-class Emote(BaseCog):
+class Emote(commands.Cog):
     """Emote was made using irdumb's sadface cog's code.
-
-    Owner is responsible for it's handling."""
+    Owner is responsible for its handling."""
 
     default_guild_settings = {"status": False, "emotes": {}}
 
@@ -28,24 +28,25 @@ class Emote(BaseCog):
 
         self._emote.register_guild(**self.default_guild_settings)
 
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.session = ClientSession(loop=self.bot.loop)
+
+    def cog_unload(self):
+        self.bot.loop.create_task(self.session.close())
+
+    __unload = cog_unload
 
     # doesn't make sense to use this command in a pm, because pms aren't in servers
     # mod_or_permissions needs something in it otherwise it's mod or True which is always True
-
-    def __unload(self):
-        self.session.close()
-
     @commands.group()
     @commands.guild_only()
-    async def emotes(self, ctx):
+    async def emotes(self, ctx: commands.Context) -> None:
         """Emote settings"""
         pass
 
     @emotes.command()
     @checks.mod_or_permissions(manage_roles=True)
     @commands.guild_only()
-    async def set(self, ctx):
+    async def set(self, ctx: commands.Context) -> None:
         """Enables/Disables emotes for this server"""
         # default off.
         guild = ctx.guild
@@ -63,7 +64,7 @@ class Emote(BaseCog):
     @emotes.command()
     @checks.is_owner()
     @commands.guild_only()
-    async def add(self, ctx, name, url):
+    async def add(self, ctx: commands.Context, name: str, url: str) -> None:
         """Allows you to add emotes to the emote list
         [p]emotes add pan http://i.imgur.com/FFRjKBW.gifv"""
         guild = ctx.guild
@@ -85,46 +86,49 @@ class Emote(BaseCog):
         if url.endswith(".gifv"):
             url = url.replace(".gifv", ".gif")
         try:
-            await ctx.send("Downloading {}.".format(name))
+            await ctx.send(f"Downloading {name}.")
             async with self.session.get(url, headers=option) as r:
                 emote = await r.read()
                 print(self._emote_path)
-                with open(self._emote_path + "{}.{}".format(name, url[-3:]), "wb") as f:
+                emote_info = f"{name}.{url[-3:]}"
+                with open(self._emote_path + emote_info, "wb") as f:
                     f.write(emote)
-
-                await ctx.send("Adding {} to the list.".format(name))
-                emotes[name] = "{}.{}".format(name, url[-3:])
-                await self._emote.guild(guild).emote.set(emotes)
-            await ctx.send("{} has been added to the list".format(name))
+                await ctx.send(f"Adding {name} to the list.")
+                emotes[name] = emote_info
+                await self._emote.guild(guild).emotes.set(emotes)
+            await ctx.send(f"{name} has been added to the list")
         except Exception as e:
             print(e)
             await ctx.send(
-                "It seems your url is not valid,"
-                " please make sure you are not typing names with spaces as they are and then the url."
-                " If so, do [p]emotes add name_with_spaces url"
+                "It seems your url is not valid."
+                " Please make sure you are not typing names with spaces"
+                " as the url might be confused for that."
+                " If you want to save an emote with spaces in the name, do"
+                " [p]emotes add name_with_spaces url"
+                f" Attached is the exception: {e}"
             )
 
     @checks.is_owner()
     @emotes.command()
     @commands.guild_only()
-    async def remove(self, ctx, name):
+    async def remove(self, ctx: commands.Context, name: str) -> None:
         """Allows you to remove emotes from the emotes list"""
         guild = ctx.guild
         name = name.lower()
         emotes = await self._emote.guild(guild).emotes()
         try:
             if name in emotes:
-                os.remove(self._emote + emotes[name])
+                remove(self._emote + emotes[name])
                 del emotes[name]
             else:
                 await ctx.send(
-                    "{} is not a valid name, please make sure the name of the"
+                    f"{name} is not a valid name, please make sure the name of the"
                     " emote that you want to remove actually exists."
-                    " Use [p]emotes list to verify it's there.".format(name)
+                    " Use [p]emotes list to verify it's there."
                 )
                 return
-            await self._emote.guild(guild).emote.set(emotes)
-            await ctx.send("{} has been removed from the list".format(name))
+            await self._emote.guild(guild).emotes.set(emotes)
+            await ctx.send(f"{name} has been removed from the list")
         except FileNotFoundError:
             await ctx.send(
                 "For some unknown reason, your emote is not available in the default directory"
@@ -135,9 +139,9 @@ class Emote(BaseCog):
     @checks.is_owner()
     @emotes.command()
     @commands.guild_only()
-    async def edit(self, ctx, name, newname):
+    async def edit(self, ctx: commands.Context, name: str, newname: str) -> None:
         """Allows you to edit the keyword that triggers the emote
-         from the emotes list"""
+        from the emotes list"""
         guild = ctx.guild
         name = name.lower()
         emotes = await self._emote.guild(guild).emotes()
@@ -146,18 +150,18 @@ class Emote(BaseCog):
             return
         try:
             if name in emotes:
-                emotes[newname] = "{}.{}".format(newname, emotes[name][-3:])
-                os.rename(self._emote + emotes[name], self._emote + emotes[newname])
+                emotes[newname] = f"{newname}.{emotes[name[-3:]]}"
+                rename(self._emote + emotes[name], self._emote + emotes[newname])
                 del emotes[name]
             else:
                 await ctx.send(
-                    "{} is not a valid name, please make sure the name of the"
+                    f"{name} is not a valid name, please make sure the name of the"
                     " emote that you want to edit exists"
-                    " Use [p]emotes list to verify it's there.".format(name)
+                    " Use [p]emotes list to verify it's there."
                 )
                 return
-            await self._emote.guild(guild).emote.set(emotes)
-            await ctx.send("{} in the emotes list has been renamed to {}".format(name, newname))
+            await self._emote.guild(guild).emotes.set(emotes)
+            await ctx.send(f"{name} in the emotes list has been renamed to {newname}")
         except FileNotFoundError:
             await ctx.send(
                 "For some unknown reason, your emote is not available in the default directory,"
@@ -167,7 +171,7 @@ class Emote(BaseCog):
 
     @emotes.command()
     @commands.guild_only()
-    async def list(self, ctx, style):
+    async def list(self, ctx: commands.Context, style: str) -> None:
         """Shows you the emotes list.
         Supported styles: [p]emotes list 10 (shows 10 emotes per page)
         and [p]emotes list a (shows all the emotes beginning with a)"""
@@ -190,8 +194,9 @@ class Emote(BaseCog):
         elif style.isalpha():
             istyle = []
             for i in range(len(istyles)):
-                ist = re.findall("\\b" + style + "\\w+", istyles[i])
-                istyle = istyle + ist
+                ist = findall(f"\\b{style}\\w+", istyles[i])
+                if len(ist) > 0:
+                    istyle = istyle + ist
             style = 10
         else:
             await ctx.send(
@@ -199,234 +204,162 @@ class Emote(BaseCog):
                 " of the accepted styles, either do [p]emotes list A or [p]emotes list 10"
             )
             return
-        s = "\n"
+        msg = "List of available emotes:\n"
+        self.emote_paging(ctx, istyle, msg, style)
+
+    @checks.is_owner()
+    @emotes.command()
+    @commands.guild_only()
+    async def compare(
+        self, ctx: commands.Context, style: str, all_keyword: str = None
+    ) -> None:
+        """Allows you to compare keywords to files
+        or files to keywords and then make sure that
+        they all match.
+        Keywords to Files name: K2F
+        Files to Keywords name: F2K
+        [p]emotes compare K2F
+        [p]emotes compare K2F all
+        [p]emotes compare F2K all"""
+        style = style.lower()
+        if all_keyword is not None:
+            all_keyword = all_keyword.lower()
+        styleset = ["k2f", "f2k"]
+        if style not in styleset:
+            return
+        msg = "Keywords deleted due to missing files in the emotes list:\n"
+        c = list()
+        for entry in scandir(str(self._emote_path)):
+            c.append(entry.name)
+        if style == styleset[0]:
+            if all_keyword == "all":
+                self.k2f_all_function(ctx, msg, c)
+            else:
+                self.k2f_function(ctx, msg, c)
+        elif style == styleset[1]:
+            if all_keyword == "all":
+                self.f2k_all_function(ctx, c)
+            else:
+                self.f2k_function(ctx, c)
+
+    async def f2k_function(
+        self,
+        ctx: commands.Context,
+        c: List[str],
+        guild: Guild = None,
+        in_guild: bool = False,
+    ) -> None:
+        msg = "All files and keywords are accounted for"
+        if in_guild:
+            msg = msg + f" in {guild}"
+        if guild is None:
+            guild = ctx.guild
+        emotes = await self._emote.guild(guild).emotes()
+        count = 0
+        for emote in c:
+            listing = emote.split(".")
+            if listing[0] not in emotes:
+                emotes[listing[0]] = emote
+                count += 1
+        if count == 0:
+            await ctx.send(msg)
+        else:
+            count_msg = (
+                f"{count} Keywords have been successfully added to the image list"
+            )
+            if in_guild:
+                count_msg = count_msg + f" in {guild}"
+            await self._emote.guild(guild).emotes.set(emotes)
+            await ctx.send(count_msg)
+
+    async def f2k_all_function(self, ctx: commands.Context, c: List[str]) -> None:
+        if not c:
+            await ctx.send(
+                "It is impossible to verify the integrity of files and "
+                "keywords due to missing files. Please make sure that the"
+                " files have not been deleted."
+            )
+            return
+        servers = sorted(await self._emote.all_guilds())
+        for guild in servers:
+            self.f2k_function(ctx, c, guild, in_guild=True)
+
+    async def k2f_all_function(self, ctx: commands.Context, msg, c) -> None:
+        servers = sorted(await self._emote.all_guilds())
+        for guild in servers:
+            self.k2f_function(ctx, msg, c, guild, in_guild=True)
+
+    async def k2f_function(
+        self,
+        ctx: commands.Context,
+        msg: str,
+        c: List[str],
+        guild: Guild = None,
+        in_guild: bool = False,
+    ) -> None:
+        missing_msg = "All files and keywords are accounted for"
+        if in_guild:
+            missing_msg = missing_msg + f" in {guild}"
+        if guild is None:
+            guild = ctx.guild
+        missing = list()
+        emotes = await self._emote.guild(guild).emotes()
+        istyles = sorted(emotes)
+        for n in istyles:
+            emote = "|".join(c)
+            if not n[0].isalnum():
+                z = compile(r"\B" + n + r"\b")
+            else:
+                z = compile(r"\b" + n + r"\b")
+            if z.search(emote) is None:
+                missing.append(n)
+        if not missing:
+            await ctx.send(missing_msg)
+        else:
+            for m in missing:
+                if m in emotes:
+                    del emotes[m]
+            await self._emote.guild(guild).emotes.set(emotes)
+            self.emote_paging(ctx, missing, msg)
+
+    async def emote_paging(
+        self, ctx: commands.Context, missing: List[str], msg: str, style: int = 10
+    ) -> None:
+        s = "\n".join
         count = style
-        counter = len(istyle) + count
+        counter = len(missing) + style
         while style <= counter:
             if style <= count:
-                y = s.join(istyle[:style])
-                await ctx.send("List of available emotes:\n{}".format(y))
-                if style > len(istyle):
+                y = s(missing[:style])
+                await ctx.send(msg + y)
+                if style >= len(missing):
                     return
                 style += count
             elif style > count:
                 style2 = style - count
-                y = s.join(istyle[style2:style])
-                await ctx.send("Continuation:\n{}".format(y))
-                if style > len(istyle):
+                y = s(missing[style2:style])
+                await ctx.send(f"Continuation:\n{y}")
+                if style >= len(missing):
                     return
                 style += count
             await ctx.send("Do you want to continue seeing the list? Yes/No")
 
             def check(m):
-                return m.content.lower().strip() in ["yes", "no"] and m.author == ctx.author
+                return (
+                    m.content.lower().strip() in ["yes", "no"]
+                    and m.author == ctx.author
+                )
 
             try:
                 answer = await self.bot.wait_for("messsage", timeout=15, check=check)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return
             else:
                 if answer.content.lower().strip() == "yes":
                     continue
                 return
 
-    @checks.is_owner()
-    @emotes.command()
-    @commands.guild_only()
-    async def compare(self, ctx, style, alls: str = None):
-        """Allows you to compare keywords to files
-        or files to keywords and then make sure that
-        they all coincide.
-        Keywords to Files name: K2F
-        Files to Keywords name: F2K
-        [p]emotes compare K2F
-        [p]emotes compare K2F all
-        [p]emotes compare F2K all"""
-        guild = ctx.guild
-        style = style.lower()
-        if alls is not None:
-            alls = alls.lower()
-        styleset = ["k2f", "f2k"]
-        if style not in styleset:
-            return
-        msg = "Keywords deleted due to missing files in the emotes list:\n"
-        c = list()
-        for entry in os.scandir(str(self._emote_path)):
-            c.append(entry.name)
-        if style == styleset[0]:
-            if alls == "all":
-                servers = sorted(await self._emote.guilds())
-                servers.remove("emote")
-                for servs in servers:
-                    missing = list()
-                    server = await self._emote.guild(servs).emotes()
-                    istyles = sorted(server)
-                    for n in istyles:
-                        cat = "|".join(c)
-                        if not n[0].isalnum():
-                            z = re.compile(r"\B" + n + r"\b")
-                        else:
-                            z = re.compile(r"\b" + n + r"\b")
-                        if z.search(cat) is None:
-                            missing.append(n)
-                    if not missing:
-                        await ctx.send("All files and keywords are accounted for in " + servs)
-                        if len(servers) == servers.index(servs):
-                            return
-                        else:
-                            continue
-                    for m in missing:
-                        if m in server:
-                            del server[m]
-                    await self._emote.guild(servs).emote.set(server)
-                    s = "\n"
-                    style = 10
-                    counter = len(missing) + 10
-                    while style <= counter:
-                        if style <= 10:
-                            y = s.join(missing[:style])
-                            await ctx.send(msg + y)
-                            if style >= len(missing):
-                                break
-                            style += 10
-                        elif style > 10:
-                            style2 = style - 10
-                            y = s.join(missing[style2:style])
-                            await ctx.send("Continuation:\n{}".format(y))
-                            if style >= len(missing):
-                                break
-                            style += 10
-                        await ctx.send("Do you want to continue seeing the list? Yes/No")
-
-                        def check(m):
-                            return (
-                                m.content.lower().strip() in ["yes", "no"] and
-                                m.author == ctx.author
-                            )
-
-                        try:
-                            answer = await self.bot.wait_for("messsage", timeout=15, check=check)
-                        except asyncio.TimeoutError:
-                            break
-                        else:
-                            if answer.content.lower().strip() == "yes":
-                                continue
-                            break
-            else:
-                emotes = await self._emote.guild(guild).emotes()
-                istyles = sorted(emotes)
-                for n in istyles:
-                    cat = "|".join(c)
-                    if not n[0].isalnum():
-                        z = re.compile(r"\B" + n + r"\b")
-                    else:
-                        z = re.compile(r"\b" + n + r"\b")
-                    if z.search(cat) is None:
-                        missing.append(n)
-                if not missing:
-                    await ctx.send("All files and keywords are accounted for")
-                    return
-                for m in missing:
-                    if m in emotes:
-                        del emotes[m]
-                await self._emote.guild(guild).emote.set(emotes)
-                s = "\n"
-                style = 10
-                counter = len(missing) + 10
-                while style <= counter:
-                    if style <= 10:
-                        y = s.join(missing[:style])
-                        await ctx.send(msg + y)
-                        if style >= len(missing):
-                            return
-                        style += 10
-                    elif style > 10:
-                        style2 = style - 10
-                        y = s.join(missing[style2:style])
-                        await ctx.send("Continuation:\n{}".format(y))
-                        if style >= len(missing):
-                            return
-                        style += 10
-                    await ctx.send("Do you want to continue seeing the list? Yes/No")
-
-                    def check(m):
-                        return (
-                            m.content.lower().strip() in ["yes", "no"] and m.author == ctx.author
-                        )
-
-                    try:
-                        answer = await self.bot.wait_for("messsage", timeout=15, check=check)
-                    except asyncio.TimeoutError:
-                        return
-                    else:
-                        if answer.content.lower().strip() == "yes":
-                            continue
-                        return
-
-        elif style == styleset[1]:
-            if alls == "all":
-                servers = sorted(await self._emote.guilds())
-                servers.remove("emote")
-                if not c:
-                    await ctx.send(
-                        "It is impossible to verify the integrity of files and "
-                        "keywords due to missing files. Please make sure that the"
-                        " files have not been deleted."
-                    )
-                    return
-                for servs in servers:
-                    count = 0
-                    server = await servs.emotes()
-                    for cat in c:
-                        if cat.endswith(".png"):
-                            listing = cat.split(".png")
-                            dog = len(listing) - 1
-                            del listing[dog]
-                            listing.append(".png")
-                        elif cat.endswith(".gif"):
-                            listing = cat.split(".gif")
-                            dog = len(listing) - 1
-                            del listing[dog]
-                            listing.append(".gif")
-                        if listing[0] not in server:
-                            server[listing[0]] = cat
-                            count += 1
-                    if count == 0:
-                        await ctx.send("All files and keywords are accounted for in " + servs)
-                        if len(servers) == servers.index(servs):
-                            return
-                        else:
-                            continue
-                    await self._emote.guild(servs).emotes.set(server)
-                    await ctx.send(
-                        str(count) +
-                        " Keywords have been successfully added to the image list in " +
-                        servs
-                    )
-            else:
-                emotes = await self._emote.guild(guild).emotes()
-                if not c:
-                    await ctx.send(
-                        "It is impossible to verify the integrity of files and "
-                        "keywords due to missing files. Please make sure that the"
-                        " files have not been deleted."
-                    )
-                    return
-                count = 0
-                for cat in c:
-                    listing = cat.split(".")
-                    if listing[0] not in emotes:
-                        emotes[listing[0]] = cat
-                        count += 1
-                if count == 0:
-                    await ctx.send("All files and keywords are accounted for")
-                    return
-                await self._emote.guild(guild).emotes.set(emotes)
-                await ctx.send(
-                    str(count) + " Keywords have been successfully added to the image list"
-                )
-
-    async def check_emotes(self, message):
+    async def check_emotes(self, message: Message) -> None:
         # check if setting is on in this server
         # Let emotes happen in PMs always
         guild = message.guild
@@ -451,11 +384,11 @@ class Emote(BaseCog):
         regexen = []
         for n in sorted(emotes):
             if not n[0].isalnum():
-                regexen.append(re.compile(r"\B" + n + r"\b"))
+                regexen.append(compile(r"\B" + n + r"\b"))
             else:
-                regexen.append(re.compile(r"\b" + n + r"\b"))
+                regexen.append(compile(r"\b" + n + r"\b"))
 
-        for w, r in itertools.product(msg, regexen):
+        for w, r in product(msg, regexen):
             match = r.search(w)
             if match:
                 listed.append(emotes[match.group(0)])
@@ -465,16 +398,16 @@ class Emote(BaseCog):
         if pnglisted and len(pnglisted) > 1:
             ims = self.imgprocess(pnglisted)
             image = self._emote_path / ims
-            await message.channel.send(file=discord.File(str(image)))
+            await message.channel.send(file=File(str(image)))
         elif pnglisted:
             image = self._emote_path / pnglisted[0]
-            await message.channel.send(file=discord.File(str(image)))
+            await message.channel.send(file=File(str(image)))
         if giflisted:
             for ims in giflisted:
                 image = self._emote_path / ims
-                await message.channel.send(file=discord.File(str(image)))
+                await message.channel.send(file=File(str(image)))
 
-    def imgprocess(self, listed):
+    def imgprocess(self, listed: list) -> str:
         for i in range(len(listed)):
             listed[i] = str(self._emote_path / listed[i])
         images = [Image.open(i) for i in listed]
@@ -486,6 +419,6 @@ class Emote(BaseCog):
         for im in images:
             new_im.paste(im, (x_offset, 0))
             x_offset += im.size[0]
-        cat = "test.png"
-        new_im.save(self._emote_path + cat)
-        return cat
+        final_image = "test.png"
+        new_im.save(self._emote_path + final_image)
+        return final_image
